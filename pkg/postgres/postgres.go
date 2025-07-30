@@ -35,6 +35,7 @@ func New(url string) (*Postgres, error) {
 
 	for attempt > 0 {
 		pg.Pool, err = pgxpool.NewWithConfig(context.Background(), poolConfig)
+
 		if err != nil {
 			return nil, fmt.Errorf("pool creation error: %w", err)
 		}
@@ -47,7 +48,7 @@ func New(url string) (*Postgres, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("postgres connection error, connection attempts = 0: %w", err)
+		return nil, fmt.Errorf("postgres connection error, out of connection attempts: %w", err)
 	}
 
 	return pg, nil

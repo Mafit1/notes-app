@@ -1,4 +1,4 @@
-module notes-app
+module github.com/Mafit1/notes-app
 
 go 1.24.2
 
