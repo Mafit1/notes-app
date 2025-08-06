@@ -41,6 +41,8 @@ func New(configPath string) *App {
 		log.Fatalf("app - New - config.New: %v", err)
 	}
 
+	initLogger(cfg.Log.Level)
+
 	return &App{cfg: cfg}
 }
 

@@ -12,6 +12,7 @@ type (
 		App      App      `yaml:"app"`
 		HTTP     HTTP     `yaml:"http"`
 		Postgres Postgres `yaml:"postgres"`
+		Log      Log      `yaml:"logger"`
 	}
 
 	App struct {
@@ -26,6 +27,10 @@ type (
 	Postgres struct {
 		URL            string        `env-required:"true" yaml:"url" env:"POSTGRES_URL"`
 		ConnectionTime time.Duration `env-required:"true" yaml:"connect_timeout" env:"POSTGRES_CONNECT_TIMEOUT"`
+	}
+
+	Log struct {
+		Level string `env-required:"true" yaml:"level" env:"LOG_LEVEL"`
 	}
 )
 
