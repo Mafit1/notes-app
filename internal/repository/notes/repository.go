@@ -94,23 +94,25 @@ func (r *repository) GetAll(ctx context.Context) (notes []models.Note, err error
 	return notes, nil
 }
 
-func (r *repository) GetByID(ctx context.Context, id int64) (note *models.Note, err error) {
+func (r *repository) GetByID(ctx context.Context, id int64) (note models.Note, err error) {
 	row := r.db.Pool.QueryRow(ctx, sqlGetById, id)
 
-	if err := row.Scan(&note); err != nil {
+	if err := row.Scan(&note.ID, &note.Title, &note.Content); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.Note{}, fmt.Errorf("%w: note with id: %d not found", ErrNoteNotFound, id)
+		}
+
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			return nil, fmt.Errorf(
+			return models.Note{}, fmt.Errorf(
 				"%w: database error code %s: %v",
 				ErrDatabase,
 				pgErr.Code,
 				pgErr.Message,
 			)
 		}
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("%w: note with id: %d not found", ErrNoteNotFound, id)
-		}
-		return nil, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
+
+		return models.Note{}, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
 	}
 
 	return note, nil

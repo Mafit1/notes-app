@@ -32,13 +32,13 @@ func (s *service) GetAll(ctx context.Context) (notes []models.Note, err error) {
 	return notes, nil
 }
 
-func (s *service) GetByID(ctx context.Context, id int64) (note *models.Note, err error) {
+func (s *service) GetByID(ctx context.Context, id int64) (note models.Note, err error) {
 	note, err = s.notesRepository.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, notes_repo.ErrNoteNotFound) {
-			return nil, ErrNoteNotFound
+			return models.Note{}, ErrNoteNotFound
 		}
-		return nil, ErrCannotGetNote
+		return models.Note{}, ErrCannotGetNote
 	}
 	return note, nil
 }

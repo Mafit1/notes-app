@@ -1,6 +1,9 @@
 package app
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/Mafit1/notes-app/pkg/validator"
+	"github.com/labstack/echo/v4"
+)
 
 func (app *App) EchoHandler() *echo.Echo {
 	if app.echoHandler != nil {
@@ -8,8 +11,10 @@ func (app *App) EchoHandler() *echo.Echo {
 	}
 
 	handler := echo.New()
+	handler.Validator = validator.New()
 
 	app.configureRouter(handler)
+	app.echoHandler = handler
 
 	return app.echoHandler
 }
@@ -19,7 +24,7 @@ func (app *App) configureRouter(handler *echo.Echo) {
 	{
 		notesGroup.GET("", app.GetNotesHandler().Handle)
 		notesGroup.GET("/:id", app.GetNoteByIDHandler().Handle)
-		notesGroup.POST("/:id", app.PostNoteHandler().Handle)
+		notesGroup.POST("", app.PostNoteHandler().Handle)
 		notesGroup.DELETE("/:id", app.DeleteNoteHandler().Handle)
 	}
 }
