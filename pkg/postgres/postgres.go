@@ -20,10 +20,14 @@ type Postgres struct {
 	Pool *pgxpool.Pool
 }
 
-func New(url string) (*Postgres, error) {
+func New(url string, opts ...Option) (*Postgres, error) {
 	pg := &Postgres{
 		connectionTimeout:  defaultConnectionTimeout,
 		connectionAttempts: defaultConnectionAttempts,
+	}
+
+	for _, opt := range opts {
+		opt(pg)
 	}
 
 	poolConfig, err := pgxpool.ParseConfig(url)

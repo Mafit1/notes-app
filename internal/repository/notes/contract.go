@@ -6,7 +6,7 @@ import (
 	"github.com/Mafit1/notes-app/internal/models"
 )
 
-type Service interface {
+type Repository interface {
 	Create(ctx context.Context, note models.Note) (int64, error)
 	GetAll(ctx context.Context) ([]models.Note, error)
 	GetByID(ctx context.Context, id int64) (*models.Note, error)

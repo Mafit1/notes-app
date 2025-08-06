@@ -5,37 +5,37 @@ import (
 	"errors"
 
 	"github.com/Mafit1/notes-app/internal/models"
-	"github.com/Mafit1/notes-app/internal/repository"
+	notes_repo "github.com/Mafit1/notes-app/internal/repository/notes"
 )
 
-type Service struct {
-	noteRepository NoteRepository
+type service struct {
+	notesRepository notes_repo.Repository
 }
 
-func New(repo NoteRepository) *Service {
-	return &Service{repo}
+func New(repo notes_repo.Repository) Service {
+	return &service{repo}
 }
 
-func (s *Service) Create(ctx context.Context, note models.Note) (id int64, err error) {
-	id, err = s.noteRepository.Create(ctx, note)
+func (s *service) Create(ctx context.Context, note models.Note) (id int64, err error) {
+	id, err = s.notesRepository.Create(ctx, note)
 	if err != nil {
 		return 0, ErrCannotCreateNote
 	}
 	return id, nil
 }
 
-func (s *Service) GetAll(ctx context.Context) (notes []models.Note, err error) {
-	notes, err = s.noteRepository.GetAll(ctx)
+func (s *service) GetAll(ctx context.Context) (notes []models.Note, err error) {
+	notes, err = s.notesRepository.GetAll(ctx)
 	if err != nil {
 		return nil, ErrCannotGetAllNotes
 	}
 	return notes, nil
 }
 
-func (s *Service) GetByID(ctx context.Context, id int64) (note *models.Note, err error) {
-	note, err = s.noteRepository.GetByID(ctx, id)
+func (s *service) GetByID(ctx context.Context, id int64) (note *models.Note, err error) {
+	note, err = s.notesRepository.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, repository.ErrNoteNotFound) {
+		if errors.Is(err, notes_repo.ErrNoteNotFound) {
 			return nil, ErrNoteNotFound
 		}
 		return nil, ErrCannotGetNote
@@ -43,10 +43,10 @@ func (s *Service) GetByID(ctx context.Context, id int64) (note *models.Note, err
 	return note, nil
 }
 
-func (s *Service) Delete(ctx context.Context, id int64) error {
-	err := s.noteRepository.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, id int64) error {
+	err := s.notesRepository.Delete(ctx, id)
 	if err != nil {
-		if errors.Is(err, repository.ErrNoteNotFound) {
+		if errors.Is(err, notes_repo.ErrNoteNotFound) {
 			return ErrNoteNotFound
 		}
 		return ErrCannotGetNote
@@ -54,10 +54,10 @@ func (s *Service) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *Service) Update(ctx context.Context, note models.Note) error {
-	err := s.noteRepository.Update(ctx, note)
+func (s *service) Update(ctx context.Context, note models.Note) error {
+	err := s.notesRepository.Update(ctx, note)
 	if err != nil {
-		if errors.Is(err, repository.ErrNoteNotFound) {
+		if errors.Is(err, notes_repo.ErrNoteNotFound) {
 			return ErrNoteNotFound
 		}
 		return ErrCannotUpdateNote

@@ -12,7 +12,6 @@ type (
 		App      App      `yaml:"app"`
 		HTTP     HTTP     `yaml:"http"`
 		Postgres Postgres `yaml:"postgres"`
-		Log      Log      `yaml:"logger"`
 	}
 
 	App struct {
@@ -28,10 +27,6 @@ type (
 		URL            string        `env-required:"true" yaml:"url" env:"POSTGRES_URL"`
 		ConnectionTime time.Duration `env-required:"true" yaml:"connect_timeout" env:"POSTGRES_CONNECT_TIMEOUT"`
 	}
-
-	Log struct {
-		Level string `env-required:"true" yaml:"level" env:"LOG_LEVEL"`
-	}
 )
 
 func New(configPath string) (*Config, error) {
@@ -44,7 +39,7 @@ func New(configPath string) (*Config, error) {
 
 	err = cleanenv.UpdateEnv(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("congif updating error: %w", err)
+		return nil, fmt.Errorf("config updating error: %w", err)
 	}
 
 	return cfg, nil

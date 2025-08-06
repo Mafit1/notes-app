@@ -5,8 +5,5 @@ app:
 http:
   port: '8080'
 
-logger:
-  level: 'debug'
-
 postgres:
   connect_timeout: 5s
