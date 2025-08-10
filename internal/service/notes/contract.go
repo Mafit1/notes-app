@@ -6,6 +6,7 @@ import (
 	"github.com/Mafit1/notes-app/internal/models"
 )
 
+//go:generate mockgen -destination=mocks/mock_$GOFILE -package=mocks . Service
 type Service interface {
 	Create(ctx context.Context, note models.Note) (int64, error)
 	GetAll(ctx context.Context) ([]models.Note, error)
