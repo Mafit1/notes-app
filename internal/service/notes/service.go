@@ -49,7 +49,7 @@ func (s *service) Delete(ctx context.Context, id int64) error {
 		if errors.Is(err, notes_repo.ErrNoteNotFound) {
 			return ErrNoteNotFound
 		}
-		return ErrCannotGetNote
+		return ErrCannotDeleteNote
 	}
 	return nil
 }

@@ -2,28 +2,78 @@ package notes_test
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Mafit1/notes-app/internal/models"
+	notes_repo "github.com/Mafit1/notes-app/internal/repository/notes"
 	notes_repo_mocks "github.com/Mafit1/notes-app/internal/repository/notes/mocks"
 	notes_service "github.com/Mafit1/notes-app/internal/service/notes"
 	"github.com/golang/mock/gomock"
 )
 
 func TestCreate(t *testing.T) {
+	var (
+		ctx    = context.Background()
+		noteID = int64(1)
+	)
 
+	type MockBehaivor func(r *notes_repo_mocks.MockRepository)
+
+	note := models.Note{
+		Title:   "title",
+		Content: "content",
+	}
+
+	tests := []struct {
+		name         string
+		mockBehaivor MockBehaivor
+		want         int64
+		wantErr      error
+	}{
+		{
+			name: "success",
+			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+				r.EXPECT().Create(ctx, note).Return(noteID, nil)
+			},
+			want:    1,
+			wantErr: nil,
+		},
+		{
+			name: "cannot create note",
+			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+				r.EXPECT().Create(ctx, note).Return(int64(0), assert.AnError)
+			},
+			want:    0,
+			wantErr: notes_service.ErrCannotCreateNote,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+
+			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+			tc.mockBehaivor(mockRepo)
+
+			s := notes_service.New(mockRepo)
+
+			got, err := s.Create(ctx, note)
+
+			assert.ErrorIs(t, err, tc.wantErr)
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }
 
 func TestGetAll(t *testing.T) {
 	var (
-		arbitraryErr = errors.New("arbitrary error")
-		ctx          = context.Background()
+		ctx = context.Background()
 	)
 
-	type MockBehaivor func(s *notes_repo_mocks.MockRepository)
+	type MockBehaivor func(r *notes_repo_mocks.MockRepository)
 
 	notes := []models.Note{
 		{
@@ -57,7 +107,7 @@ func TestGetAll(t *testing.T) {
 		{
 			name: "cannot get all notes",
 			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().GetAll(ctx).Return(nil, arbitraryErr)
+				r.EXPECT().GetAll(ctx).Return(nil, assert.AnError)
 			},
 			want:    nil,
 			wantErr: notes_service.ErrCannotGetAllNotes,
@@ -70,7 +120,6 @@ func TestGetAll(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
-
 			tc.mockBehaivor(mockRepo)
 
 			s := notes_service.New(mockRepo)
@@ -84,11 +133,120 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestGetByID(t *testing.T) {
+	var (
+		ctx       = context.Background()
+		id        = int64(1)
+		emptyNote = models.Note{}
+	)
 
+	type MockBehaivor func(r *notes_repo_mocks.MockRepository)
+
+	note := models.Note{
+		Title:   "title",
+		Content: "content",
+	}
+
+	tests := []struct {
+		name         string
+		mockBehaivor MockBehaivor
+		want         models.Note
+		wantErr      error
+	}{
+		{
+			name: "success",
+			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+				r.EXPECT().GetByID(ctx, id).Return(note, nil)
+			},
+			want:    note,
+			wantErr: nil,
+		},
+		{
+			name: "note not found",
+			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+				r.EXPECT().GetByID(ctx, id).Return(emptyNote, notes_repo.ErrNoteNotFound)
+			},
+			want:    emptyNote,
+			wantErr: notes_service.ErrNoteNotFound,
+		},
+		{
+			name: "unexpected error",
+			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+				r.EXPECT().GetByID(ctx, id).Return(emptyNote, assert.AnError)
+			},
+			want:    emptyNote,
+			wantErr: notes_service.ErrCannotGetNote,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+
+			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+			tc.mockBehaivor(mockRepo)
+
+			s := notes_service.New(mockRepo)
+
+			got, err := s.GetByID(ctx, id)
+
+			assert.ErrorIs(t, err, tc.wantErr)
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }
 
 func TestDelete(t *testing.T) {
+	var (
+		ctx = context.Background()
+		id  = int64(1)
+	)
 
+	type MockBehaivor func(r *notes_repo_mocks.MockRepository)
+
+	tests := []struct {
+		name         string
+		mockBehaivor MockBehaivor
+		wantErr      error
+	}{
+		{
+			name: "success",
+			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+				r.EXPECT().Delete(ctx, id).Return(nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "note not found",
+			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+				r.EXPECT().Delete(ctx, id).Return(notes_repo.ErrNoteNotFound)
+			},
+			wantErr: notes_service.ErrNoteNotFound,
+		},
+		{
+			name: "unexpected error",
+			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+				r.EXPECT().Delete(ctx, id).Return(assert.AnError)
+			},
+			wantErr: notes_service.ErrCannotDeleteNote,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+
+			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+			tc.mockBehaivor(mockRepo)
+
+			s := notes_service.New(mockRepo)
+
+			err := s.Delete(ctx, id)
+
+			assert.ErrorIs(t, err, tc.wantErr)
+		})
+	}
 }
 
 func TestUpdate(t *testing.T) {
