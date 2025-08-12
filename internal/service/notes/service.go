@@ -54,13 +54,13 @@ func (s *service) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *service) Update(ctx context.Context, note models.Note) error {
-	err := s.notesRepository.Update(ctx, note)
+func (s *service) Update(ctx context.Context, note models.Note) (updatedNote models.Note, err error) {
+	updatedNote, err = s.notesRepository.Update(ctx, note)
 	if err != nil {
 		if errors.Is(err, notes_repo.ErrNoteNotFound) {
-			return ErrNoteNotFound
+			return models.Note{}, ErrNoteNotFound
 		}
-		return ErrCannotUpdateNote
+		return models.Note{}, ErrCannotUpdateNote
 	}
-	return nil
+	return updatedNote, nil
 }

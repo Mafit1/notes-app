@@ -32,6 +32,8 @@ type App struct {
 
 	postNoteHandler api.Handler
 
+	putNoteHandler api.Handler
+
 	notesService notesService.Service
 }
 

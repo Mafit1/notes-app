@@ -95,11 +95,12 @@ func (mr *MockServiceMockRecorder) GetByID(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // Update mocks base method.
-func (m *MockService) Update(arg0 context.Context, arg1 models.Note) error {
+func (m *MockService) Update(arg0 context.Context, arg1 models.Note) (models.Note, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(models.Note)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.

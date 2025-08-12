@@ -6,6 +6,7 @@ import (
 	getnotebyid "github.com/Mafit1/notes-app/internal/api/get_note_by_id"
 	getnotes "github.com/Mafit1/notes-app/internal/api/get_notes"
 	postnote "github.com/Mafit1/notes-app/internal/api/post_note"
+	putnote "github.com/Mafit1/notes-app/internal/api/put_note"
 )
 
 func (app *App) DeleteNoteHandler() api.Handler {
@@ -34,4 +35,11 @@ func (app *App) PostNoteHandler() api.Handler {
 		app.postNoteHandler = postnote.New(app.NotesService())
 	}
 	return app.postNoteHandler
+}
+
+func (app *App) PutNoteHandler() api.Handler {
+	if app.putNoteHandler == nil {
+		app.putNoteHandler = putnote.New(app.NotesService())
+	}
+	return app.putNoteHandler
 }

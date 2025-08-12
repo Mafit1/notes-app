@@ -140,30 +140,31 @@ func (r *repository) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (r *repository) Update(ctx context.Context, note models.Note) error {
-	result, err := r.db.Pool.Exec(
+func (r *repository) Update(ctx context.Context, note models.Note) (updatedNote models.Note, err error) {
+	row := r.db.Pool.QueryRow(
 		ctx,
 		sqlUpdate,
 		note.ID,
 		note.Title,
 		note.Content,
 	)
+	err = row.Scan(&updatedNote.ID, &updatedNote.Title, &updatedNote.Content)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.Note{}, fmt.Errorf("%w: note with id: %d not found", ErrNoteNotFound, note.ID)
+		}
+
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			return fmt.Errorf(
+			return models.Note{}, fmt.Errorf(
 				"%w: database error code %s: %v",
 				ErrDatabase,
 				pgErr.Code,
 				pgErr.Message,
 			)
 		}
-		return fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
+		return models.Note{}, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
 	}
 
-	if result.RowsAffected() == 0 {
-		return fmt.Errorf("%w: note with id: %d not found", ErrNoteNotFound, note.ID)
-	}
-
-	return nil
+	return updatedNote, nil
 }

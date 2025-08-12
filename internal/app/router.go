@@ -26,5 +26,6 @@ func (app *App) configureRouter(handler *echo.Echo) {
 		notesGroup.GET("/:id", app.GetNoteByIDHandler().Handle)
 		notesGroup.POST("", app.PostNoteHandler().Handle)
 		notesGroup.DELETE("/:id", app.DeleteNoteHandler().Handle)
+		notesGroup.PUT("/:id", app.PutNoteHandler().Handle)
 	}
 }
