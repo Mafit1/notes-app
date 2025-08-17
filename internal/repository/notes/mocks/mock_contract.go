@@ -10,6 +10,7 @@ import (
 
 	models "github.com/Mafit1/notes-app/internal/models"
 	gomock "github.com/golang/mock/gomock"
+	uuid "github.com/google/uuid"
 )
 
 // MockRepository is a mock of Repository interface.
@@ -77,6 +78,21 @@ func (m *MockRepository) GetAll(arg0 context.Context) ([]models.Note, error) {
 func (mr *MockRepositoryMockRecorder) GetAll(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), arg0)
+}
+
+// GetAllFromUser mocks base method.
+func (m *MockRepository) GetAllFromUser(arg0 context.Context, arg1 uuid.UUID) ([]models.Note, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllFromUser", arg0, arg1)
+	ret0, _ := ret[0].([]models.Note)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllFromUser indicates an expected call of GetAllFromUser.
+func (mr *MockRepositoryMockRecorder) GetAllFromUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFromUser", reflect.TypeOf((*MockRepository)(nil).GetAllFromUser), arg0, arg1)
 }
 
 // GetByID mocks base method.

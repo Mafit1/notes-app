@@ -8,6 +8,7 @@ import (
 
 	"github.com/Mafit1/notes-app/internal/models"
 	"github.com/Mafit1/notes-app/pkg/postgres"
+	"github.com/google/uuid"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -91,6 +92,11 @@ func (r *repository) GetAll(ctx context.Context) (notes []models.Note, err error
 		return []models.Note{}, nil
 	}
 
+	return notes, nil
+}
+
+func (r *repository) GetAllFromUser(ctx context.Context, userID uuid.UUID) (notes []models.Note, err error) {
+	// TODO
 	return notes, nil
 }
 
