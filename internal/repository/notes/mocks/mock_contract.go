@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/Mafit1/notes-app/internal/models"
+	notes "github.com/Mafit1/notes-app/internal/repository/notes"
 	gomock "github.com/golang/mock/gomock"
 	uuid "github.com/google/uuid"
 )
@@ -37,7 +38,7 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockRepository) Create(arg0 context.Context, arg1 models.Note) (int64, error) {
+func (m *MockRepository) Create(arg0 context.Context, arg1 notes.CreateNote) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(int64)
@@ -80,19 +81,34 @@ func (mr *MockRepositoryMockRecorder) GetAll(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), arg0)
 }
 
-// GetAllFromUser mocks base method.
-func (m *MockRepository) GetAllFromUser(arg0 context.Context, arg1 uuid.UUID) ([]models.Note, error) {
+// GetAllFromUserByEmail mocks base method.
+func (m *MockRepository) GetAllFromUserByEmail(arg0 context.Context, arg1 string) ([]models.Note, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllFromUser", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetAllFromUserByEmail", arg0, arg1)
 	ret0, _ := ret[0].([]models.Note)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllFromUser indicates an expected call of GetAllFromUser.
-func (mr *MockRepositoryMockRecorder) GetAllFromUser(arg0, arg1 interface{}) *gomock.Call {
+// GetAllFromUserByEmail indicates an expected call of GetAllFromUserByEmail.
+func (mr *MockRepositoryMockRecorder) GetAllFromUserByEmail(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFromUser", reflect.TypeOf((*MockRepository)(nil).GetAllFromUser), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFromUserByEmail", reflect.TypeOf((*MockRepository)(nil).GetAllFromUserByEmail), arg0, arg1)
+}
+
+// GetAllFromUserByID mocks base method.
+func (m *MockRepository) GetAllFromUserByID(arg0 context.Context, arg1 uuid.UUID) ([]models.Note, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllFromUserByID", arg0, arg1)
+	ret0, _ := ret[0].([]models.Note)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllFromUserByID indicates an expected call of GetAllFromUserByID.
+func (mr *MockRepositoryMockRecorder) GetAllFromUserByID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllFromUserByID", reflect.TypeOf((*MockRepository)(nil).GetAllFromUserByID), arg0, arg1)
 }
 
 // GetByID mocks base method.

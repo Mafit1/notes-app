@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/Mafit1/notes-app/internal/models"
+	notes "github.com/Mafit1/notes-app/internal/service/notes"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,7 +37,7 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockService) Create(arg0 context.Context, arg1 models.Note) (int64, error) {
+func (m *MockService) Create(arg0 context.Context, arg1 notes.CreateNote) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(int64)

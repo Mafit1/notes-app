@@ -21,7 +21,7 @@ func TestCreate(t *testing.T) {
 
 	type MockBehaivor func(r *notes_repo_mocks.MockRepository)
 
-	note := models.Note{
+	note := notes_service.CreateNote{
 		Title:   "title",
 		Content: "content",
 	}
@@ -35,7 +35,10 @@ func TestCreate(t *testing.T) {
 		{
 			name: "success",
 			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().Create(ctx, note).Return(noteID, nil)
+				r.EXPECT().Create(ctx, notes_repo.CreateNote{
+					Title:   note.Title,
+					Content: note.Content,
+				}).Return(noteID, nil)
 			},
 			want:    1,
 			wantErr: nil,
@@ -43,7 +46,10 @@ func TestCreate(t *testing.T) {
 		{
 			name: "cannot create note",
 			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().Create(ctx, note).Return(int64(0), assert.AnError)
+				r.EXPECT().Create(ctx, notes_repo.CreateNote{
+					Title:   note.Title,
+					Content: note.Content,
+				}).Return(int64(0), assert.AnError)
 			},
 			want:    0,
 			wantErr: notes_service.ErrCannotCreateNote,

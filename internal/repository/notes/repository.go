@@ -29,6 +29,12 @@ var (
 
 	//go:embed sql/update.sql
 	sqlUpdate string
+
+	//go:embed sql/get_all_from_user_by_id.sql
+	sqlGetAllFromUserByID string
+
+	//go:embed sql/get_all_from_user_by_email.sql
+	sqlGetAllFromUserByEmail string
 )
 
 type repository struct {
@@ -39,7 +45,7 @@ func New(postgres *postgres.Postgres) Repository {
 	return &repository{postgres}
 }
 
-func (r *repository) Create(ctx context.Context, note models.Note) (id int64, err error) {
+func (r *repository) Create(ctx context.Context, note CreateNote) (id int64, err error) {
 	err = r.db.Pool.QueryRow(ctx, sqlCreate, note.Title, note.Content).Scan(&id)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -51,6 +57,7 @@ func (r *repository) Create(ctx context.Context, note models.Note) (id int64, er
 				pgErr.Message,
 			)
 		}
+		// This check may be unnecessary.
 		if errors.Is(err, pgx.ErrNoRows) {
 			return 0, fmt.Errorf("%w: failed to scan after insert", ErrDatabase)
 		}
@@ -95,7 +102,43 @@ func (r *repository) GetAll(ctx context.Context) (notes []models.Note, err error
 	return notes, nil
 }
 
-func (r *repository) GetAllFromUser(ctx context.Context, userID uuid.UUID) (notes []models.Note, err error) {
+func (r *repository) GetAllFromUserByID(ctx context.Context, userID uuid.UUID) (notes []models.Note, err error) {
+	rows, err := r.db.Pool.Query(ctx, sqlGetAllFromUserByID, userID)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			return nil, fmt.Errorf(
+				"%w: database error code %s: %v",
+				ErrDatabase,
+				pgErr.Code,
+				pgErr.Message,
+			)
+		}
+		return nil, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
+	}
+	defer rows.Close()
+
+	notes = make([]models.Note, 0)
+	for rows.Next() {
+		var note models.Note
+		if err := rows.Scan(&note.ID, &note.Title, &note.Content); err != nil {
+			return nil, fmt.Errorf("%w: failed to scan row: %v", ErrDatabase, err)
+		}
+		notes = append(notes, note)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: rows iteration error: %v", ErrDatabase, err)
+	}
+
+	if len(notes) == 0 {
+		return []models.Note{}, nil
+	}
+
+	return notes, nil
+}
+
+func (r *repository) GetAllFromUserByEmail(ctx context.Context, userEmail string) (notes []models.Note, err error) {
 	// TODO
 	return notes, nil
 }

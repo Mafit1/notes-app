@@ -16,8 +16,14 @@ func New(repo notes_repo.Repository) Service {
 	return &service{repo}
 }
 
-func (s *service) Create(ctx context.Context, note models.Note) (id int64, err error) {
-	id, err = s.notesRepository.Create(ctx, note)
+func (s *service) Create(ctx context.Context, note CreateNote) (id int64, err error) {
+	id, err = s.notesRepository.Create(
+		ctx,
+		notes_repo.CreateNote{
+			Title:   note.Title,
+			Content: note.Content,
+		},
+	)
 	if err != nil {
 		return 0, ErrCannotCreateNote
 	}

@@ -5,7 +5,6 @@ import (
 
 	"github.com/Mafit1/notes-app/internal/api"
 	"github.com/Mafit1/notes-app/internal/api/common/decorator"
-	"github.com/Mafit1/notes-app/internal/models"
 	"github.com/Mafit1/notes-app/internal/service/notes"
 	"github.com/labstack/echo/v4"
 )
@@ -34,7 +33,7 @@ type Responce struct {
 }
 
 func (h *handler) Handle(c echo.Context, in Request) error {
-	note := models.Note{
+	note := notes.CreateNote{
 		Title:   in.Title,
 		Content: in.Content,
 	}
