@@ -32,6 +32,7 @@ func New(postgres *postgres.Postgres) Repository {
 	return &repository{postgres}
 }
 
+// TODO: Сделать проверку на существование юзера
 func (r *repository) Create(ctx context.Context, user CreateUser) (id uuid.UUID, err error) {
 	err = r.db.Pool.QueryRow(
 		ctx,
