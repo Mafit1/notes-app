@@ -24,15 +24,15 @@ var (
 	sqlGetByEmail string
 )
 
-type repostory struct {
+type repository struct {
 	db *postgres.Postgres
 }
 
 func New(postgres *postgres.Postgres) Repository {
-	return &repostory{postgres}
+	return &repository{postgres}
 }
 
-func (r *repostory) Create(ctx context.Context, user CreateUser) (id uuid.UUID, err error) {
+func (r *repository) Create(ctx context.Context, user CreateUser) (id uuid.UUID, err error) {
 	err = r.db.Pool.QueryRow(
 		ctx,
 		sqlCreate,
@@ -56,7 +56,7 @@ func (r *repostory) Create(ctx context.Context, user CreateUser) (id uuid.UUID, 
 	return id, nil
 }
 
-func (r *repostory) GetByEmail(ctx context.Context, email string) (user models.User, err error) {
+func (r *repository) GetByEmail(ctx context.Context, email string) (user models.User, err error) {
 	row := r.db.Pool.QueryRow(ctx, sqlGetByEmail, email)
 
 	if err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role); err != nil {
@@ -80,7 +80,7 @@ func (r *repostory) GetByEmail(ctx context.Context, email string) (user models.U
 	return user, nil
 }
 
-func (r *repostory) GetByID(ctx context.Context, id uuid.UUID) (user models.User, err error) {
+func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (user models.User, err error) {
 	row := r.db.Pool.QueryRow(ctx, sqlGetByID, id)
 
 	if err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role); err != nil {
