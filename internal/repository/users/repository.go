@@ -22,6 +22,9 @@ var (
 
 	//go:embed sql/get_by_email.sql
 	sqlGetByEmail string
+
+	//go:embed sql/check_email_exists.sql
+	sqlCheckEmailExists string
 )
 
 type repository struct {
@@ -103,4 +106,9 @@ func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (user models.Use
 	}
 
 	return user, nil
+}
+
+func (r *repository) EmailExists(ctx context.Context, email string) (exists bool, err error) {
+	err = r.db.Pool.QueryRow(ctx, sqlCheckEmailExists, email).Scan(&exists)
+	return exists, err
 }
