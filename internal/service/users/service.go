@@ -29,7 +29,7 @@ func (s *service) Create(ctx context.Context, user CreateUser) (id uuid.UUID, er
 		return uuid.Nil, fmt.Errorf("%w: %v", ErrFailedToCheckEmail, err)
 	}
 	if emailExist {
-		return uuid.Nil, fmt.Errorf("%w: user with this email already exists", ErrUserAlreadyExists)
+		return uuid.Nil, fmt.Errorf("%w: user with email %s already exists", ErrUserAlreadyExists, user.Email)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
