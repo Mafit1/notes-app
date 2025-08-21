@@ -7,7 +7,7 @@ import (
 )
 
 type Service interface {
-	GenerateToken(in RegisterIn) (string, error)
+	GenerateToken(in GenerateIn) (string, error)
 	ParseToken(tokenString string) (*models.Claims, error)
 	RefreshToken(oldTokenString string) (string, error)
 	ValidateToken(tokenString string) (bool, error)

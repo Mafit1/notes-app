@@ -15,7 +15,7 @@ type service struct {
 	expiry    time.Duration
 }
 
-func New(secretKey string, expiry time.Duration) *service {
+func New(secretKey string, expiry time.Duration) Service {
 	if secretKey == "" {
 		panic("JWT secret key is required")
 	}
@@ -29,7 +29,7 @@ func New(secretKey string, expiry time.Duration) *service {
 	}
 }
 
-func (s *service) GenerateToken(in RegisterIn) (tokenString string, err error) {
+func (s *service) GenerateToken(in GenerateIn) (tokenString string, err error) {
 	claims := &models.Claims{
 		UserID: in.UserID,
 		Email:  in.Email,
@@ -100,7 +100,7 @@ func (s *service) RefreshToken(oldTokenString string) (string, error) {
 	}
 
 	return s.GenerateToken(
-		RegisterIn{
+		GenerateIn{
 			UserID: claims.UserID,
 			Email:  claims.Email,
 			Role:   claims.Role,

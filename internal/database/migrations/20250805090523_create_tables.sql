@@ -28,6 +28,9 @@ CREATE TABLE notes (
         REFERENCES users(id)
         ON DELETE CASCADE
 );
+
+CREATE INDEX idx_notes_user_id ON notes(user_id);
+CREATE INDEX idx_notes_user_id_created_at ON notes(user_id, created_at DESC);
 -- +goose StatementEnd
 
 -- +goose Down
