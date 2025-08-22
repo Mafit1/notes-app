@@ -8,7 +8,7 @@ var (
 	ErrCannotUpdateUser      = errors.New("cannot update user")
 	ErrUserNotFound          = errors.New("user not found")
 	ErrUserAlreadyExists     = errors.New("user already exists")
-	ErrPasswordTooShort      = errors.New("password is too short")
+	ErrPasswordValidation    = errors.New("password validation failed")
 	ErrPasswordHashingFailed = errors.New("password hashing failed")
 	ErrFailedToCheckEmail    = errors.New("failed to check email for duplicate")
 )

@@ -7,21 +7,23 @@ import (
 
 	"github.com/Mafit1/notes-app/internal/models"
 	users_repo "github.com/Mafit1/notes-app/internal/repository/users"
+	user_validator "github.com/Mafit1/notes-app/pkg/uservalidator"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type service struct {
 	usersRepository users_repo.Repository
+	userValidator   user_validator.UserValidator
 }
 
-func New(repo users_repo.Repository) Service {
-	return &service{repo}
+func New(repo users_repo.Repository, userValidator user_validator.UserValidator) Service {
+	return &service{repo, userValidator}
 }
 
 func (s *service) Create(ctx context.Context, user CreateUser) (id uuid.UUID, err error) {
-	if len(user.Password) < 8 {
-		return uuid.Nil, fmt.Errorf("%w: password should be at least 8 characters", ErrPasswordTooShort)
+	if err = s.userValidator.ValidatePassword(user.Password); err != nil {
+		return uuid.Nil, fmt.Errorf("%w: %v", ErrPasswordValidation, err)
 	}
 
 	emailExist, err := s.usersRepository.EmailExists(ctx, user.Email)
