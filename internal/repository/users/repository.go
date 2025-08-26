@@ -59,17 +59,18 @@ func (r *repository) Create(ctx context.Context, user CreateUser) (id uuid.UUID,
 	return id, nil
 }
 
-func (r *repository) GetByEmail(ctx context.Context, email string) (user models.User, err error) {
+func (r *repository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	user := models.User{}
 	row := r.db.Pool.QueryRow(ctx, sqlGetByEmail, email)
 
 	if err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return models.User{}, fmt.Errorf("%w: user with email: %s not found", ErrUserNotFound, email)
+			return nil, fmt.Errorf("%w: user with email: %s not found", ErrUserNotFound, email)
 		}
 
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			return models.User{}, fmt.Errorf(
+			return nil, fmt.Errorf(
 				"%w: database error code %s: %v",
 				ErrDatabase,
 				pgErr.Code,
@@ -77,23 +78,24 @@ func (r *repository) GetByEmail(ctx context.Context, email string) (user models.
 			)
 		}
 
-		return models.User{}, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
+		return nil, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
 	}
 
-	return user, nil
+	return &user, nil
 }
 
-func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (user models.User, err error) {
+func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	user := models.User{}
 	row := r.db.Pool.QueryRow(ctx, sqlGetByID, id)
 
 	if err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.Role); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return models.User{}, fmt.Errorf("%w: user with id: %s not found", ErrUserNotFound, id)
+			return nil, fmt.Errorf("%w: user with id: %s not found", ErrUserNotFound, id)
 		}
 
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			return models.User{}, fmt.Errorf(
+			return nil, fmt.Errorf(
 				"%w: database error code %s: %v",
 				ErrDatabase,
 				pgErr.Code,
@@ -101,10 +103,10 @@ func (r *repository) GetByID(ctx context.Context, id uuid.UUID) (user models.Use
 			)
 		}
 
-		return models.User{}, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
+		return nil, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func (r *repository) EmailExists(ctx context.Context, email string) (exists bool, err error) {

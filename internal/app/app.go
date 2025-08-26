@@ -8,9 +8,15 @@ import (
 	"github.com/Mafit1/notes-app/internal/api"
 	"github.com/Mafit1/notes-app/internal/database"
 	notesRepo "github.com/Mafit1/notes-app/internal/repository/notes"
+	usersRepo "github.com/Mafit1/notes-app/internal/repository/users"
+	authService "github.com/Mafit1/notes-app/internal/service/auth"
+	"github.com/Mafit1/notes-app/internal/service/jwtservice"
 	notesService "github.com/Mafit1/notes-app/internal/service/notes"
+	usersService "github.com/Mafit1/notes-app/internal/service/users"
+	"github.com/Mafit1/notes-app/pkg/hasher"
 	"github.com/Mafit1/notes-app/pkg/httpserver"
 	"github.com/Mafit1/notes-app/pkg/postgres"
+	"github.com/Mafit1/notes-app/pkg/uservalidator"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 )
@@ -19,12 +25,17 @@ type App struct {
 	cfg       *config.Config
 	interrupt <-chan os.Signal
 
+	// db
 	postgres *postgres.Postgres
 
+	// echo
 	echoHandler *echo.Echo
 
+	// repos
 	notesRepo notesRepo.Repository
+	usersRepo usersRepo.Repository
 
+	// handlers
 	deleteNoteHandler api.Handler
 
 	getNoteByIDHandler api.Handler
@@ -34,7 +45,15 @@ type App struct {
 
 	putNoteHandler api.Handler
 
+	// services
 	notesService notesService.Service
+	usersService usersService.Service
+	authService  authService.Service
+	jwtservice   jwtservice.Service
+
+	// infra
+	passwordHasher hasher.PasswordHasher
+	userValidator  uservalidator.UserValidator
 }
 
 func New(configPath string) *App {

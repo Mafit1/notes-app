@@ -1,6 +1,8 @@
 package auth
 
+import "context"
+
 type Service interface {
-	Register(in RegisterIn) (RegisterOut, error)
-	Login(in LoginIn) (LoginOut, error)
+	Register(ctx context.Context, in RegisterIn) (*RegisterOut, error)
+	Login(ctx context.Context, in LoginIn) (*LoginOut, error)
 }

@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/Mafit1/notes-app/internal/repository/notes"
+	"github.com/Mafit1/notes-app/internal/repository/users"
 	"github.com/Mafit1/notes-app/pkg/postgres"
 )
 
@@ -14,4 +15,11 @@ func (app *App) NotesRepo() notes.Repository {
 		app.notesRepo = notes.New(app.Postgres())
 	}
 	return app.notesRepo
+}
+
+func (app *App) UsersRepo() users.Repository {
+	if app.usersRepo == nil {
+		app.usersRepo = users.New(app.Postgres())
+	}
+	return app.usersRepo
 }

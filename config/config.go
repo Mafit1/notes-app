@@ -13,6 +13,7 @@ type (
 		HTTP     HTTP     `yaml:"http"`
 		Postgres Postgres `yaml:"postgres"`
 		Log      Log      `yaml:"logger"`
+		Auth     Auth     `yaml:"auth"`
 	}
 
 	App struct {
@@ -31,6 +32,11 @@ type (
 
 	Log struct {
 		Level string `env-required:"true" yaml:"level" env:"LOG_LEVEL"`
+	}
+
+	Auth struct {
+		JWTSecretKey   string        `env-required:"true" yaml:"jwt_secret_key" env:"AUTH_JWT_SECRET_KEY"`
+		AccessTokenTTL time.Duration `env_required:"true" yaml:"access_token_ttl" env:"AUTH_ACCESS_TOKEN_TTL"`
 	}
 )
 

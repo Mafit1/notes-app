@@ -3,12 +3,10 @@ package users
 import "errors"
 
 var (
-	ErrCannotCreateUser      = errors.New("cannot create user")
-	ErrCannotGetUser         = errors.New("cannot get user by id")
-	ErrCannotUpdateUser      = errors.New("cannot update user")
-	ErrUserNotFound          = errors.New("user not found")
-	ErrUserAlreadyExists     = errors.New("user already exists")
-	ErrPasswordValidation    = errors.New("password validation failed")
-	ErrPasswordHashingFailed = errors.New("password hashing failed")
-	ErrFailedToCheckEmail    = errors.New("failed to check email for duplicate")
+	ErrCannotCreateUser   = errors.New("cannot create user")
+	ErrCannotGetUser      = errors.New("cannot get user by id")
+	ErrCannotUpdateUser   = errors.New("cannot update user")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrFailedToCheckEmail = errors.New("failed to check email for duplicate")
 )

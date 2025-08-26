@@ -1,24 +1,30 @@
 package auth
 
-import "github.com/Mafit1/notes-app/internal/models"
+import (
+	"github.com/Mafit1/notes-app/internal/models"
+	"github.com/google/uuid"
+)
 
 type RegisterIn struct {
-	name     string
-	email    string
-	password string
+	Name     string
+	Email    string
+	Password string
+	Role     models.RoleType
 }
 
 type LoginIn struct {
-	email    string
-	password string
+	Email    string
+	Password string
 }
 
 type RegisterOut struct {
-	user      *models.User
-	authToken string
+	UserID    uuid.UUID
+	Email     string
+	AuthToken string
 }
 
 type LoginOut struct {
-	user      *models.User
-	authToken string
+	UserID    uuid.UUID
+	Email     string
+	AuthToken string
 }

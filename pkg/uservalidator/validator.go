@@ -12,6 +12,11 @@ var (
 	ErrPasswordNoSpecial = errors.New("password must contain at least one special character")
 )
 
+const (
+	minPasswordLength = 8
+	maxEmailLength    = 256
+)
+
 type UserValidator interface {
 	ValidatePassword(password string) error
 	ValidateEmail(email string) error
@@ -24,7 +29,7 @@ func New() UserValidator {
 }
 
 func (v *userValidator) ValidatePassword(password string) error {
-	if len(password) < 8 {
+	if len(password) < minPasswordLength {
 		return ErrPasswordTooShort
 	}
 
