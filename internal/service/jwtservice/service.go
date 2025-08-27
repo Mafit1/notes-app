@@ -1,41 +1,140 @@
 package jwtservice
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/Mafit1/notes-app/internal/models"
+	auth_repo "github.com/Mafit1/notes-app/internal/repository/auth"
+	users_service "github.com/Mafit1/notes-app/internal/service/users"
+	"github.com/Mafit1/notes-app/pkg/hasher"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
 type service struct {
-	secretKey []byte
-	expiry    time.Duration
+	accessSecret  []byte
+	accessExpiry  time.Duration
+	refreshSecret []byte
+	refreshExpiry time.Duration
+	authRepo      auth_repo.Repository
+	usersService  users_service.Service
+	hasher        hasher.Hasher
 }
 
-func New(secretKey string, expiry time.Duration) Service {
-	if secretKey == "" {
-		panic("JWT secret key is required")
-	}
-	if len(secretKey) < 32 {
-		panic("JWT secret key must be at least 32 characters")
+func New(
+	accessSecret string,
+	accessExpiry time.Duration,
+	refreshSecret string,
+	refreshExpiry time.Duration,
+	authRepo auth_repo.Repository,
+	usersService users_service.Service,
+	hasher hasher.Hasher,
+) Service {
+	if len(accessSecret) < 32 || len(refreshSecret) < 32 {
+		panic("JWT secret keys must be at least 32 characters")
 	}
 
 	return &service{
-		secretKey: []byte(secretKey),
-		expiry:    expiry,
+		accessSecret:  []byte(accessSecret),
+		accessExpiry:  accessExpiry,
+		refreshSecret: []byte(refreshSecret),
+		refreshExpiry: refreshExpiry,
+		authRepo:      authRepo,
+		usersService:  usersService,
+		hasher:        hasher,
 	}
 }
 
-func (s *service) GenerateToken(in GenerateIn) (tokenString string, err error) {
+func (s *service) GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut, error) {
+	accessToken, err := s.generateJWT(GenerateIn{
+		UserID: in.UserID,
+		Email:  in.Email,
+		Role:   in.Role,
+	}, s.accessSecret, s.accessExpiry)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate access token: %w", err)
+	}
+
+	refreshTokenPlain := uuid.New().String()
+	refreshTokenHash, err := s.hasher.Hash(refreshTokenPlain)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash refresh token: %w", err)
+	}
+
+	_, err = s.authRepo.Create(ctx, auth_repo.RefreshTokenIn{
+		UserID:    in.UserID,
+		TokenHash: refreshTokenHash,
+		TTL:       s.refreshExpiry,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to save refresh token: %w", err)
+	}
+
+	out := GenerateOut{
+		AccessToken:  accessToken,
+		RefreshToken: refreshTokenPlain,
+	}
+
+	return &out, nil
+}
+
+func (s *service) RefreshAccessToken(ctx context.Context, refreshToken string) (string, error) {
+	refreshTokenHash, err := s.hasher.Hash(refreshToken)
+	if err != nil {
+		return "", fmt.Errorf("failed to hash refresh token: %w", err)
+	}
+
+	token, err := s.authRepo.GetByHash(ctx, refreshTokenHash)
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
+	}
+
+	if !token.IsActive() {
+		return "", fmt.Errorf("%w: token is not active", ErrInvalidRefreshToken)
+	}
+
+	user, err := s.usersService.GetByID(ctx, token.UserID)
+	if err != nil {
+		return "", fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
+	}
+
+	accessToken, err := s.generateJWT(
+		GenerateIn{
+			UserID: user.ID,
+			Email:  user.Email,
+			Role:   string(user.Role),
+		},
+		s.accessSecret,
+		s.accessExpiry,
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate access token: %w", err)
+	}
+
+	return accessToken, nil
+}
+
+func (s *service) ValidateToken(tokenString string) (bool, error) {
+	_, err := s.parseJWT(tokenString, s.accessSecret)
+	if err != nil {
+		if errors.Is(err, ErrTokenExpired) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func (s *service) generateJWT(in GenerateIn, secret []byte, expiry time.Duration) (string, error) {
 	claims := &models.Claims{
 		UserID: in.UserID,
 		Email:  in.Email,
 		Role:   in.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(s.expiry)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiry)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Issuer:    "notes-app",
@@ -45,16 +144,10 @@ func (s *service) GenerateToken(in GenerateIn) (tokenString string, err error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenString, err = token.SignedString(s.secretKey)
-	if err != nil {
-		return "", fmt.Errorf("failed to sign token: %w", err)
-	}
-
-	return tokenString, nil
+	return token.SignedString(secret)
 }
 
-func (s *service) ParseToken(tokenString string) (claims *models.Claims, err error) {
+func (s *service) parseJWT(tokenString string, secret []byte) (*models.Claims, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
 		&models.Claims{},
@@ -62,7 +155,7 @@ func (s *service) ParseToken(tokenString string) (claims *models.Claims, err err
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return s.secretKey, nil
+			return secret, nil
 		},
 		jwt.WithLeeway(5*time.Second),
 	)
@@ -71,59 +164,11 @@ func (s *service) ParseToken(tokenString string) (claims *models.Claims, err err
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			return nil, ErrTokenExpired
 		}
-		if errors.Is(err, jwt.ErrTokenMalformed) {
-			return nil, fmt.Errorf("%w: malformed token", ErrInvalidToken)
-		}
 		return nil, fmt.Errorf("%w: %v", ErrInvalidToken, err)
 	}
 
 	if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
-		if claims.UserID == uuid.Nil {
-			return nil, fmt.Errorf("%w: midding user ID", ErrInvalidToken)
-		}
-		if claims.Email == "" {
-			return nil, fmt.Errorf("%w: missing email", ErrInvalidToken)
-		}
 		return claims, nil
 	}
 	return nil, ErrInvalidToken
-}
-
-func (s *service) RefreshToken(oldTokenString string) (string, error) {
-	claims, err := s.ParseToken(oldTokenString)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse token for refresh: %w", err)
-	}
-
-	if time.Until(claims.ExpiresAt.Time) < time.Minute {
-		return "", ErrTokenExpired
-	}
-
-	return s.GenerateToken(
-		GenerateIn{
-			UserID: claims.UserID,
-			Email:  claims.Email,
-			Role:   claims.Role,
-		},
-	)
-}
-
-func (s *service) ValidateToken(tokenString string) (bool, error) {
-	_, err := s.ParseToken(tokenString)
-	if err != nil {
-		if errors.Is(err, ErrTokenExpired) || errors.Is(err, ErrTokenRevoked) {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
-}
-
-func (s *service) GetRemainingTime(tokenString string) (time.Duration, error) {
-	claims, err := s.ParseToken(tokenString)
-	if err != nil {
-		return 0, err
-	}
-
-	return time.Until(claims.ExpiresAt.Time), nil
 }

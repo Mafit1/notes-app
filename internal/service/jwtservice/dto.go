@@ -7,3 +7,8 @@ type GenerateIn struct {
 	Email  string
 	Role   string
 }
+
+type GenerateOut struct {
+	AccessToken  string
+	RefreshToken string
+}

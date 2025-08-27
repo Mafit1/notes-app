@@ -16,7 +16,7 @@ type Claims struct {
 
 type RefreshToken struct {
 	TokenID   uuid.UUID `json:"token_id" db:"token_id"`
-	UserID    int       `json:"user_id" db:"user_id"`
+	UserID    uuid.UUID `json:"user_id" db:"user_id"`
 	TokenHash string    `json:"-" db:"token_hash"`
 	ExpiresAt time.Time `json:"expires_at" db:"expires_at"`
 	Revoked   bool      `json:"revoked" db:"revoked"`

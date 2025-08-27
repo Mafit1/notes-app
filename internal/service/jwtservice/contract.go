@@ -1,15 +1,9 @@
 package jwtservice
 
-import (
-	"time"
-
-	"github.com/Mafit1/notes-app/internal/models"
-)
+import "context"
 
 type Service interface {
-	GenerateToken(in GenerateIn) (string, error)
-	ParseToken(tokenString string) (*models.Claims, error)
-	RefreshToken(oldTokenString string) (string, error)
+	GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut, error)
+	RefreshAccessToken(ctx context.Context, refreshToken string) (string, error)
 	ValidateToken(tokenString string) (bool, error)
-	GetRemainingTime(tokenString string) (time.Duration, error)
 }

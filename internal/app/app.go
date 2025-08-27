@@ -52,7 +52,7 @@ type App struct {
 	jwtservice   jwtservice.Service
 
 	// infra
-	passwordHasher hasher.PasswordHasher
+	passwordHasher hasher.Hasher
 	userValidator  uservalidator.UserValidator
 }
 

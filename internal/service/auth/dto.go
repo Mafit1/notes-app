@@ -18,13 +18,15 @@ type LoginIn struct {
 }
 
 type RegisterOut struct {
-	UserID    uuid.UUID
-	Email     string
-	AuthToken string
+	UserID       uuid.UUID
+	Email        string
+	AccessToken  string
+	RefreshToken string
 }
 
 type LoginOut struct {
-	UserID    uuid.UUID
-	Email     string
-	AuthToken string
+	UserID       uuid.UUID
+	Email        string
+	AccessToken  string
+	RefreshToken string
 }

@@ -5,21 +5,26 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Mafit1/notes-app/internal/models"
+	"github.com/Mafit1/notes-app/internal/repository/auth"
 	jwt_service "github.com/Mafit1/notes-app/internal/service/jwtservice"
 	users_service "github.com/Mafit1/notes-app/internal/service/users"
 	"github.com/Mafit1/notes-app/pkg/hasher"
 	user_validator "github.com/Mafit1/notes-app/pkg/uservalidator"
+	"github.com/google/uuid"
 )
 
 type service struct {
+	authRepo      auth.Repository
 	usersService  users_service.Service
 	jwtService    jwt_service.Service
 	userValidator user_validator.UserValidator
-	hasher        hasher.PasswordHasher
+	hasher        hasher.Hasher
 }
 
-func New(usersService users_service.Service, jwtService jwt_service.Service, userValidator user_validator.UserValidator, hasher hasher.PasswordHasher) Service {
+func New(authRepo auth.Repository, usersService users_service.Service, jwtService jwt_service.Service, userValidator user_validator.UserValidator, hasher hasher.Hasher) Service {
 	return &service{
+		authRepo:      authRepo,
 		usersService:  usersService,
 		jwtService:    jwtService,
 		userValidator: userValidator,
@@ -49,7 +54,7 @@ func (s *service) Register(ctx context.Context, in RegisterIn) (out *RegisterOut
 		return nil, fmt.Errorf("%w: %v", ErrPasswordHashingFailed, err)
 	}
 
-	uuid, err := s.usersService.Create(
+	userID, err := s.usersService.Create(
 		ctx,
 		users_service.CreateUser{
 			Name:           in.Name,
@@ -61,19 +66,31 @@ func (s *service) Register(ctx context.Context, in RegisterIn) (out *RegisterOut
 		return nil, fmt.Errorf("%w: %v", ErrRegistration, err)
 	}
 
-	authToken, err := s.jwtService.GenerateToken(jwt_service.GenerateIn{
-		UserID: uuid,
+	refreshTokenPlain := uuid.New().String()
+	refreshTokenHash, err := s.hasher.Hash(refreshTokenPlain)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrTokenHashingFailed, err)
+	}
+
+	_, err = s.authRepo.Create(ctx, auth.RefreshTokenIn{
+		UserID:    userID,
+		TokenHash: refreshTokenHash,
+		TTL: ,
+	})
+
+	AccessToken, err := s.jwtService.GenerateToken(jwt_service.GenerateIn{
+		UserID: userID,
 		Email:  in.Email,
 		Role:   string(in.Role),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrTokenGenerationFailed, err)
+		return nil, fmt.Errorf("%w: %v", ErrAccessTokenGenerationFailed, err)
 	}
 
 	out = &RegisterOut{
-		UserID:    uuid,
-		Email:     in.Email,
-		AuthToken: authToken,
+		UserID:      userID,
+		Email:       in.Email,
+		AccessToken: AccessToken,
 	}
 
 	return out, nil
@@ -116,4 +133,8 @@ func (s *service) Login(ctx context.Context, in LoginIn) (out *LoginOut, err err
 	}
 
 	return out, nil
+}
+
+func (s *service) Logout(ctx context.Context, token models.RefreshToken) error {
+	panic("unimplemented")
 }

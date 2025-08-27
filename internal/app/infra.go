@@ -5,7 +5,7 @@ import (
 	"github.com/Mafit1/notes-app/pkg/uservalidator"
 )
 
-func (app *App) PasswordHasher() hasher.PasswordHasher {
+func (app *App) PasswordHasher() hasher.Hasher {
 	if app.passwordHasher == nil {
 		app.passwordHasher = hasher.NewBcrypt()
 	}
