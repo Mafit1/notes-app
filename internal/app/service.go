@@ -30,7 +30,7 @@ func (app *App) AuthService() auth.Service {
 
 func (app *App) JwtService() jwtservice.Service {
 	if app.jwtservice == nil {
-		app.jwtservice = jwtservice.New(app.cfg.Auth.JWTSecretKey, app.cfg.Auth.AccessTokenTTL)
+		app.jwtservice = jwtservice.New(app.cfg.Auth.JWTAccessSecretKey, app.cfg.Auth.AccessTokenTTL)
 	}
 	return app.jwtservice
 }

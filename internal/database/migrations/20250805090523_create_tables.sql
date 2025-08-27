@@ -1,5 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TYPE user_role AS ENUM(
     'user',
     'admin'
@@ -31,11 +33,29 @@ CREATE TABLE notes (
 
 CREATE INDEX idx_notes_user_id ON notes(user_id);
 CREATE INDEX idx_notes_user_id_created_at ON notes(user_id, created_at DESC);
+
+CREATE TABLE refresh_tokens (
+    token_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    token_hash TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked BOOLEAN DEFAULT FALSE,
+    revoked_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+CREATE INDEX idx_refresh_tokens_expires ON refresh_tokens(expires_at);
+CREATE INDEX idx_refresh_tokens_active ON refresh_tokens(user_id, revoked, expires_at);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS notes;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS refresh_tokens;
 DROP TYPE IF EXISTS user_role;
 -- +goose StatementEnd

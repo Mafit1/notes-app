@@ -35,8 +35,10 @@ type (
 	}
 
 	Auth struct {
-		JWTSecretKey   string        `env-required:"true" yaml:"jwt_secret_key" env:"AUTH_JWT_SECRET_KEY"`
-		AccessTokenTTL time.Duration `env_required:"true" yaml:"access_token_ttl" env:"AUTH_ACCESS_TOKEN_TTL"`
+		JWTAccessSecretKey  string        `env-required:"true" yaml:"jwt_secret_key" env:"JWT_ACCESS_SECRET_KEY"`
+		JWTRefreshSecretKey string        `env-required:"true" yaml:"jwt_secret_key" env:"JWT_REFRESH_SECRET_KEY"`
+		AccessTokenTTL      time.Duration `env_required:"true" yaml:"access_token_ttl" env:"JWT_ACCESS_SECRET_KEY"`
+		RefreshTokenTTL     time.Duration `env_required:"true" yaml:"access_token_ttl" env:"JWT_REFRESH_SECRET_KEY"`
 	}
 )
 

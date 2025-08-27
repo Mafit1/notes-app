@@ -109,9 +109,11 @@ func (s *service) Login(ctx context.Context, in LoginIn) (out *LoginOut, err err
 		return nil, fmt.Errorf("%w: %v", ErrTokenGenerationFailed, err)
 	}
 
-	return &LoginOut{
+	out = &LoginOut{
 		UserID:    user.ID,
 		Email:     user.Email,
 		AuthToken: authToken,
-	}, nil
+	}
+
+	return out, nil
 }
