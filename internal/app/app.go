@@ -7,6 +7,7 @@ import (
 	"github.com/Mafit1/notes-app/config"
 	"github.com/Mafit1/notes-app/internal/api"
 	"github.com/Mafit1/notes-app/internal/database"
+	authRepo "github.com/Mafit1/notes-app/internal/repository/auth"
 	notesRepo "github.com/Mafit1/notes-app/internal/repository/notes"
 	usersRepo "github.com/Mafit1/notes-app/internal/repository/users"
 	authService "github.com/Mafit1/notes-app/internal/service/auth"
@@ -34,6 +35,7 @@ type App struct {
 	// repos
 	notesRepo notesRepo.Repository
 	usersRepo usersRepo.Repository
+	authRepo  authRepo.Repository
 
 	// handlers
 	deleteNoteHandler api.Handler
@@ -52,8 +54,8 @@ type App struct {
 	jwtservice   jwtservice.Service
 
 	// infra
-	passwordHasher hasher.Hasher
-	userValidator  uservalidator.UserValidator
+	hasher        hasher.Hasher
+	userValidator uservalidator.UserValidator
 }
 
 func New(configPath string) *App {

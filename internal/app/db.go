@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/Mafit1/notes-app/internal/repository/auth"
 	"github.com/Mafit1/notes-app/internal/repository/notes"
 	"github.com/Mafit1/notes-app/internal/repository/users"
 	"github.com/Mafit1/notes-app/pkg/postgres"
@@ -22,4 +23,11 @@ func (app *App) UsersRepo() users.Repository {
 		app.usersRepo = users.New(app.Postgres())
 	}
 	return app.usersRepo
+}
+
+func (app *App) AuthRepo() auth.Repository {
+	if app.authRepo == nil {
+		app.authRepo = auth.New(app.Postgres())
+	}
+	return app.authRepo
 }

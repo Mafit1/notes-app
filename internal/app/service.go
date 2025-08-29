@@ -23,14 +23,28 @@ func (app *App) UsersService() users.Service {
 
 func (app *App) AuthService() auth.Service {
 	if app.authService == nil {
-		app.authService = auth.New(app.UsersService(), app.JwtService(), app.UserValidator(), app.PasswordHasher())
+		app.authService = auth.New(
+			app.AuthRepo(),
+			app.UsersService(),
+			app.JwtService(),
+			app.UserValidator(),
+			app.Hasher(),
+		)
 	}
 	return app.authService
 }
 
 func (app *App) JwtService() jwtservice.Service {
 	if app.jwtservice == nil {
-		app.jwtservice = jwtservice.New(app.cfg.Auth.JWTAccessSecretKey, app.cfg.Auth.AccessTokenTTL)
+		app.jwtservice = jwtservice.New(
+			app.cfg.Auth.JWTAccessSecretKey,
+			app.cfg.Auth.AccessTokenTTL,
+			app.cfg.Auth.JWTRefreshSecretKey,
+			app.cfg.Auth.RefreshTokenTTL,
+			app.AuthRepo(),
+			app.UsersService(),
+			app.Hasher(),
+		)
 	}
 	return app.jwtservice
 }
