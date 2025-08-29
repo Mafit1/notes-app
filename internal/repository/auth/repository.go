@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Mafit1/notes-app/internal/models"
+	"github.com/Mafit1/notes-app/pkg/hasher"
 	"github.com/Mafit1/notes-app/pkg/postgres"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -23,6 +24,9 @@ var (
 
 	//go:embed sql/get_by_hash.sql
 	sqlGetByHash string
+
+	//go:embed sql/get_all_by_user.sql
+	sqlGetAllByUser string
 
 	//go:embed sql/delete_expired.sql
 	sqlDeleteExpired string
@@ -108,6 +112,21 @@ func (r *repository) GetByHash(ctx context.Context, hash string) (*models.Refres
 	return &token, nil
 }
 
+func (r *repository) GetByPlain(ctx context.Context, plain string, userID uuid.UUID, hasher hasher.Hasher) (*models.RefreshToken, error) {
+	tokens, err := r.GetAllByUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch tokens: %w", err)
+	}
+
+	for _, token := range tokens {
+		if hasher.Match(plain, token.TokenHash) {
+			return token, nil
+		}
+	}
+
+	return nil, fmt.Errorf("%w: token not found", ErrInvalidRefreshToken)
+}
+
 func (r *repository) GetByID(ctx context.Context, tokenID uuid.UUID) (*models.RefreshToken, error) {
 	token := models.RefreshToken{}
 	err := r.db.Pool.QueryRow(ctx, sqlGetByID, tokenID).Scan(
@@ -135,6 +154,50 @@ func (r *repository) GetByID(ctx context.Context, tokenID uuid.UUID) (*models.Re
 		return nil, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
 	}
 	return &token, nil
+}
+
+func (r *repository) GetAllByUser(ctx context.Context, userID uuid.UUID) ([]*models.RefreshToken, error) {
+	rows, err := r.db.Pool.Query(ctx, sqlGetAllByUser, userID)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			return nil, fmt.Errorf(
+				"%w: database error code %s: %v",
+				ErrDatabase,
+				pgErr.Code,
+				pgErr.Message,
+			)
+		}
+		return nil, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
+	}
+	defer rows.Close()
+
+	tokens := []*models.RefreshToken{}
+	for rows.Next() {
+		var token models.RefreshToken
+		err := rows.Scan(
+			&token.TokenID,
+			&token.UserID,
+			&token.TokenHash,
+			&token.ExpiresAt,
+			&token.Revoked,
+			&token.RevokedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("%w: failed to scan row: %v", ErrDatabase, err)
+		}
+		tokens = append(tokens, &token)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%w: rows iteration error: %v", ErrDatabase, err)
+	}
+
+	if len(tokens) == 0 {
+		return []*models.RefreshToken{}, nil
+	}
+
+	return tokens, nil
 }
 
 func (r *repository) Revoke(ctx context.Context, tokenID uuid.UUID) error {

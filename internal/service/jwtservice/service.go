@@ -49,11 +49,7 @@ func New(
 }
 
 func (s *service) GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut, error) {
-	accessToken, err := s.generateJWT(GenerateIn{
-		UserID: in.UserID,
-		Email:  in.Email,
-		Role:   in.Role,
-	}, s.accessSecret, s.accessExpiry)
+	accessToken, err := s.generateJWT(in, s.accessSecret, s.accessExpiry)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
@@ -81,40 +77,57 @@ func (s *service) GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut
 	return &out, nil
 }
 
-func (s *service) RefreshAccessToken(ctx context.Context, refreshToken string) (string, error) {
-	refreshTokenHash, err := s.hasher.Hash(refreshToken)
+func (s *service) RotatePair(ctx context.Context, oldTokenID uuid.UUID, in GenerateIn) (*GenerateOut, error) {
+	accessToken, err := s.generateJWT(in, s.accessSecret, s.accessExpiry)
 	if err != nil {
-		return "", fmt.Errorf("failed to hash refresh token: %w", err)
+		return nil, fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	token, err := s.authRepo.GetByHash(ctx, refreshTokenHash)
+	newRefreshPlain := uuid.New().String()
+	newRefreshHash, err := s.hasher.Hash(newRefreshPlain)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
+		return nil, fmt.Errorf("failed to hash new refresh token: %w", err)
+	}
+
+	_, err = s.authRepo.Create(ctx, auth_repo.RefreshTokenIn{
+		UserID:    in.UserID,
+		TokenHash: newRefreshHash,
+		TTL:       s.refreshExpiry,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to save new refresh token: %w", err)
+	}
+
+	if err := s.authRepo.Revoke(ctx, oldTokenID); err != nil {
+		return nil, fmt.Errorf("failed to revoke old refresh token: %w", err)
+	}
+
+	return &GenerateOut{
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshPlain,
+	}, nil
+}
+
+func (s *service) RefreshAccessToken(ctx context.Context, userID uuid.UUID, refreshToken string) (*GenerateOut, error) {
+	token, err := s.authRepo.GetByPlain(ctx, refreshToken, userID, s.hasher)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
 	}
 
 	if !token.IsActive() {
-		return "", fmt.Errorf("%w: token is not active", ErrInvalidRefreshToken)
+		return nil, fmt.Errorf("%w: token is not active", ErrInvalidRefreshToken)
 	}
 
 	user, err := s.usersService.GetByID(ctx, token.UserID)
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
+		return nil, fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
 	}
 
-	accessToken, err := s.generateJWT(
-		GenerateIn{
-			UserID: user.ID,
-			Email:  user.Email,
-			Role:   string(user.Role),
-		},
-		s.accessSecret,
-		s.accessExpiry,
-	)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate access token: %w", err)
-	}
-
-	return accessToken, nil
+	return s.RotatePair(ctx, token.TokenID, GenerateIn{
+		UserID: user.ID,
+		Email:  user.Email,
+		Role:   string(user.Role),
+	})
 }
 
 func (s *service) ValidateToken(tokenString string) (bool, error) {

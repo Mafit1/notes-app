@@ -3,11 +3,12 @@ package auth
 import (
 	"context"
 
-	"github.com/Mafit1/notes-app/internal/models"
+	"github.com/google/uuid"
 )
 
 type Service interface {
 	Register(ctx context.Context, in RegisterIn) (*RegisterOut, error)
 	Login(ctx context.Context, in LoginIn) (*LoginOut, error)
-	Logout(ctx context.Context, token models.RefreshToken) error
+	Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error
+	RevokeAll(ctx context.Context, userID uuid.UUID) (int64, error)
 }

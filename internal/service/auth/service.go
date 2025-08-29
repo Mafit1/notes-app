@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Mafit1/notes-app/internal/models"
 	"github.com/Mafit1/notes-app/internal/repository/auth"
 	jwt_service "github.com/Mafit1/notes-app/internal/service/jwtservice"
 	users_service "github.com/Mafit1/notes-app/internal/service/users"
@@ -66,34 +65,24 @@ func (s *service) Register(ctx context.Context, in RegisterIn) (out *RegisterOut
 		return nil, fmt.Errorf("%w: %v", ErrRegistration, err)
 	}
 
-	refreshTokenPlain := uuid.New().String()
-	refreshTokenHash, err := s.hasher.Hash(refreshTokenPlain)
+	tokens, err := s.jwtService.GeneratePair(
+		ctx,
+		jwt_service.GenerateIn{
+			UserID: userID,
+			Email:  in.Email,
+			Role:   string(in.Role),
+		},
+	)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrTokenHashingFailed, err)
+		return nil, fmt.Errorf("%w: %v", ErrTokenGenerationFailed, err)
 	}
 
-	_, err = s.authRepo.Create(ctx, auth.RefreshTokenIn{
-		UserID:    userID,
-		TokenHash: refreshTokenHash,
-		TTL: ,
-	})
-
-	AccessToken, err := s.jwtService.GenerateToken(jwt_service.GenerateIn{
-		UserID: userID,
-		Email:  in.Email,
-		Role:   string(in.Role),
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrAccessTokenGenerationFailed, err)
-	}
-
-	out = &RegisterOut{
-		UserID:      userID,
-		Email:       in.Email,
-		AccessToken: AccessToken,
-	}
-
-	return out, nil
+	return &RegisterOut{
+		UserID:       userID,
+		Email:        in.Email,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, nil
 }
 
 func (s *service) Login(ctx context.Context, in LoginIn) (out *LoginOut, err error) {
@@ -117,24 +106,48 @@ func (s *service) Login(ctx context.Context, in LoginIn) (out *LoginOut, err err
 		return nil, ErrInvalidCredentials
 	}
 
-	authToken, err := s.jwtService.GenerateToken(jwt_service.GenerateIn{
-		UserID: user.ID,
-		Email:  user.Email,
-		Role:   string(user.Role),
-	})
+	tokens, err := s.jwtService.GeneratePair(
+		ctx,
+		jwt_service.GenerateIn{
+			UserID: user.ID,
+			Email:  user.Email,
+			Role:   string(user.Role),
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrTokenGenerationFailed, err)
 	}
 
-	out = &LoginOut{
-		UserID:    user.ID,
-		Email:     user.Email,
-		AuthToken: authToken,
-	}
-
-	return out, nil
+	return &LoginOut{
+		UserID:       user.ID,
+		Email:        user.Email,
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+	}, nil
 }
 
-func (s *service) Logout(ctx context.Context, token models.RefreshToken) error {
-	panic("unimplemented")
+func (s *service) Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error {
+	token, err := s.authRepo.GetByPlain(ctx, refreshToken, userID, s.hasher)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
+	}
+
+	if !token.IsActive() {
+		return fmt.Errorf("%w: token is already inactive", ErrCannotLogout)
+	}
+
+	if err := s.authRepo.Revoke(ctx, token.TokenID); err != nil {
+		return fmt.Errorf("failed to revoke token: %v", err)
+	}
+
+	return nil
+}
+
+func (s *service) RevokeAll(ctx context.Context, userID uuid.UUID) (int64, error) {
+	rowsAffected, err := s.authRepo.RevokeAllByUser(ctx, userID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to revoke all tokens: %w", err)
+	}
+
+	return rowsAffected, nil
 }

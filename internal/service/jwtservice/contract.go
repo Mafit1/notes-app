@@ -1,9 +1,14 @@
 package jwtservice
 
-import "context"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 type Service interface {
 	GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut, error)
-	RefreshAccessToken(ctx context.Context, refreshToken string) (string, error)
+	RotatePair(ctx context.Context, oldTokenID uuid.UUID, in GenerateIn) (*GenerateOut, error)
+	RefreshAccessToken(ctx context.Context, userID uuid.UUID, refreshToken string) (*GenerateOut, error)
 	ValidateToken(tokenString string) (bool, error)
 }
