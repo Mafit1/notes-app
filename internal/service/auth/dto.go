@@ -1,7 +1,8 @@
 package auth
 
 import (
-	"github.com/Mafit1/notes-app/internal/models"
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -9,7 +10,6 @@ type RegisterIn struct {
 	Name     string
 	Email    string
 	Password string
-	Role     models.RoleType
 }
 
 type LoginIn struct {
@@ -17,16 +17,18 @@ type LoginIn struct {
 	Password string
 }
 
-type RegisterOut struct {
-	UserID       uuid.UUID
-	Email        string
-	AccessToken  string
-	RefreshToken string
+type AuthData struct {
+	UserData    UserData
+	AccessToken string
+	RefreshData RefreshData
 }
 
-type LoginOut struct {
-	UserID       uuid.UUID
-	Email        string
-	AccessToken  string
+type UserData struct {
+	ID    uuid.UUID
+	Email string
+}
+
+type RefreshData struct {
 	RefreshToken string
+	ExpiresAt    time.Time
 }

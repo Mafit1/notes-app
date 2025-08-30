@@ -6,6 +6,7 @@ import (
 
 	"github.com/Mafit1/notes-app/config"
 	"github.com/Mafit1/notes-app/internal/api"
+	"github.com/Mafit1/notes-app/internal/api/common/middleware"
 	"github.com/Mafit1/notes-app/internal/database"
 	authRepo "github.com/Mafit1/notes-app/internal/repository/auth"
 	notesRepo "github.com/Mafit1/notes-app/internal/repository/notes"
@@ -17,7 +18,6 @@ import (
 	"github.com/Mafit1/notes-app/pkg/hasher"
 	"github.com/Mafit1/notes-app/pkg/httpserver"
 	"github.com/Mafit1/notes-app/pkg/postgres"
-	"github.com/Mafit1/notes-app/pkg/uservalidator"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 )
@@ -54,8 +54,10 @@ type App struct {
 	jwtservice   jwtservice.Service
 
 	// infra
-	hasher        hasher.Hasher
-	userValidator uservalidator.UserValidator
+	hasher hasher.Hasher
+
+	// middlewares
+	authMW *middleware.AuthMW
 }
 
 func New(configPath string) *App {

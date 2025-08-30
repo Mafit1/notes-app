@@ -27,7 +27,6 @@ func (app *App) AuthService() auth.Service {
 			app.AuthRepo(),
 			app.UsersService(),
 			app.JwtService(),
-			app.UserValidator(),
 			app.Hasher(),
 		)
 	}

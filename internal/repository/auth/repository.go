@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mafit1/notes-app/internal/models"
 	"github.com/Mafit1/notes-app/pkg/hasher"
 	"github.com/Mafit1/notes-app/pkg/postgres"
 	"github.com/google/uuid"
@@ -83,8 +82,8 @@ func (r *repository) DeleteExpired(ctx context.Context) (int64, error) {
 	return result.RowsAffected(), nil
 }
 
-func (r *repository) GetByHash(ctx context.Context, hash string) (*models.RefreshToken, error) {
-	token := models.RefreshToken{}
+func (r *repository) GetByHash(ctx context.Context, hash string) (*RefreshTokenOut, error) {
+	token := RefreshTokenOut{}
 	err := r.db.Pool.QueryRow(ctx, sqlGetByHash, hash).Scan(
 		&token.TokenID,
 		&token.UserID,
@@ -112,7 +111,7 @@ func (r *repository) GetByHash(ctx context.Context, hash string) (*models.Refres
 	return &token, nil
 }
 
-func (r *repository) GetByPlain(ctx context.Context, plain string, userID uuid.UUID, hasher hasher.Hasher) (*models.RefreshToken, error) {
+func (r *repository) GetByPlain(ctx context.Context, plain string, userID uuid.UUID, hasher hasher.Hasher) (*RefreshTokenOut, error) {
 	tokens, err := r.GetAllByUser(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch tokens: %w", err)
@@ -127,8 +126,8 @@ func (r *repository) GetByPlain(ctx context.Context, plain string, userID uuid.U
 	return nil, fmt.Errorf("%w: token not found", ErrInvalidRefreshToken)
 }
 
-func (r *repository) GetByID(ctx context.Context, tokenID uuid.UUID) (*models.RefreshToken, error) {
-	token := models.RefreshToken{}
+func (r *repository) GetByID(ctx context.Context, tokenID uuid.UUID) (*RefreshTokenOut, error) {
+	token := RefreshTokenOut{}
 	err := r.db.Pool.QueryRow(ctx, sqlGetByID, tokenID).Scan(
 		&token.TokenID,
 		&token.UserID,
@@ -156,7 +155,7 @@ func (r *repository) GetByID(ctx context.Context, tokenID uuid.UUID) (*models.Re
 	return &token, nil
 }
 
-func (r *repository) GetAllByUser(ctx context.Context, userID uuid.UUID) ([]*models.RefreshToken, error) {
+func (r *repository) GetAllByUser(ctx context.Context, userID uuid.UUID) ([]*RefreshTokenOut, error) {
 	rows, err := r.db.Pool.Query(ctx, sqlGetAllByUser, userID)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -172,9 +171,9 @@ func (r *repository) GetAllByUser(ctx context.Context, userID uuid.UUID) ([]*mod
 	}
 	defer rows.Close()
 
-	tokens := []*models.RefreshToken{}
+	tokens := []*RefreshTokenOut{}
 	for rows.Next() {
-		var token models.RefreshToken
+		var token RefreshTokenOut
 		err := rows.Scan(
 			&token.TokenID,
 			&token.UserID,
@@ -194,7 +193,7 @@ func (r *repository) GetAllByUser(ctx context.Context, userID uuid.UUID) ([]*mod
 	}
 
 	if len(tokens) == 0 {
-		return []*models.RefreshToken{}, nil
+		return []*RefreshTokenOut{}, nil
 	}
 
 	return tokens, nil

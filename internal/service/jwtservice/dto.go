@@ -1,6 +1,10 @@
 package jwtservice
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type GenerateIn struct {
 	UserID uuid.UUID
@@ -9,6 +13,7 @@ type GenerateIn struct {
 }
 
 type GenerateOut struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken      string
+	RefreshToken     string
+	RefreshExpiresAt time.Time
 }

@@ -70,8 +70,9 @@ func (s *service) GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut
 	}
 
 	out := GenerateOut{
-		AccessToken:  accessToken,
-		RefreshToken: refreshTokenPlain,
+		AccessToken:      accessToken,
+		RefreshToken:     refreshTokenPlain,
+		RefreshExpiresAt: time.Now().Add(s.refreshExpiry),
 	}
 
 	return &out, nil
@@ -103,8 +104,9 @@ func (s *service) RotatePair(ctx context.Context, oldTokenID uuid.UUID, in Gener
 	}
 
 	return &GenerateOut{
-		AccessToken:  accessToken,
-		RefreshToken: newRefreshPlain,
+		AccessToken:      accessToken,
+		RefreshToken:     newRefreshPlain,
+		RefreshExpiresAt: time.Now().Add(s.refreshExpiry),
 	}, nil
 }
 
@@ -141,8 +143,12 @@ func (s *service) ValidateToken(tokenString string) (bool, error) {
 	return true, nil
 }
 
+func (s *service) ParseAccessToken(tokenString string) (*models.AccessTokenClaims, error) {
+	return s.parseJWT(tokenString, s.accessSecret)
+}
+
 func (s *service) generateJWT(in GenerateIn, secret []byte, expiry time.Duration) (string, error) {
-	claims := &models.Claims{
+	claims := &models.AccessTokenClaims{
 		UserID: in.UserID,
 		Email:  in.Email,
 		Role:   in.Role,
@@ -160,10 +166,10 @@ func (s *service) generateJWT(in GenerateIn, secret []byte, expiry time.Duration
 	return token.SignedString(secret)
 }
 
-func (s *service) parseJWT(tokenString string, secret []byte) (*models.Claims, error) {
+func (s *service) parseJWT(tokenString string, secret []byte) (*models.AccessTokenClaims, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,
-		&models.Claims{},
+		&models.AccessTokenClaims{},
 		func(token *jwt.Token) (any, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -180,7 +186,7 @@ func (s *service) parseJWT(tokenString string, secret []byte) (*models.Claims, e
 		return nil, fmt.Errorf("%w: %v", ErrInvalidToken, err)
 	}
 
-	if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
+	if claims, ok := token.Claims.(*models.AccessTokenClaims); ok && token.Valid {
 		return claims, nil
 	}
 	return nil, ErrInvalidToken

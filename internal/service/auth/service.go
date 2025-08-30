@@ -5,41 +5,31 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Mafit1/notes-app/internal/models"
 	"github.com/Mafit1/notes-app/internal/repository/auth"
 	jwt_service "github.com/Mafit1/notes-app/internal/service/jwtservice"
 	users_service "github.com/Mafit1/notes-app/internal/service/users"
 	"github.com/Mafit1/notes-app/pkg/hasher"
-	user_validator "github.com/Mafit1/notes-app/pkg/uservalidator"
 	"github.com/google/uuid"
 )
 
 type service struct {
-	authRepo      auth.Repository
-	usersService  users_service.Service
-	jwtService    jwt_service.Service
-	userValidator user_validator.UserValidator
-	hasher        hasher.Hasher
+	authRepo     auth.Repository
+	usersService users_service.Service
+	jwtService   jwt_service.Service
+	hasher       hasher.Hasher
 }
 
-func New(authRepo auth.Repository, usersService users_service.Service, jwtService jwt_service.Service, userValidator user_validator.UserValidator, hasher hasher.Hasher) Service {
+func New(authRepo auth.Repository, usersService users_service.Service, jwtService jwt_service.Service, hasher hasher.Hasher) Service {
 	return &service{
-		authRepo:      authRepo,
-		usersService:  usersService,
-		jwtService:    jwtService,
-		userValidator: userValidator,
-		hasher:        hasher,
+		authRepo:     authRepo,
+		usersService: usersService,
+		jwtService:   jwtService,
+		hasher:       hasher,
 	}
 }
 
-func (s *service) Register(ctx context.Context, in RegisterIn) (out *RegisterOut, err error) {
-	if err = s.userValidator.ValidateEmail(in.Email); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrEmailValidation, err)
-	}
-
-	if err = s.userValidator.ValidatePassword(in.Password); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrPasswordValidation, err)
-	}
-
+func (s *service) Register(ctx context.Context, in RegisterIn) (out *AuthData, err error) {
 	existing, err := s.usersService.GetByEmail(ctx, in.Email)
 	if err != nil && !errors.Is(err, users_service.ErrUserNotFound) {
 		return nil, fmt.Errorf("failed to check email existence: %w", err)
@@ -70,30 +60,27 @@ func (s *service) Register(ctx context.Context, in RegisterIn) (out *RegisterOut
 		jwt_service.GenerateIn{
 			UserID: userID,
 			Email:  in.Email,
-			Role:   string(in.Role),
+			Role:   string(models.RoleTypeUser),
 		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrTokenGenerationFailed, err)
 	}
 
-	return &RegisterOut{
-		UserID:       userID,
-		Email:        in.Email,
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
+	return &AuthData{
+		UserData: UserData{
+			ID:    userID,
+			Email: in.Email,
+		},
+		AccessToken: tokens.AccessToken,
+		RefreshData: RefreshData{
+			RefreshToken: tokens.RefreshToken,
+			ExpiresAt:    tokens.RefreshExpiresAt,
+		},
 	}, nil
 }
 
-func (s *service) Login(ctx context.Context, in LoginIn) (out *LoginOut, err error) {
-	if err := s.userValidator.ValidateEmail(in.Email); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrEmailValidation, err)
-	}
-
-	if in.Password == "" {
-		return nil, fmt.Errorf("%w: password cannot be empty", ErrPasswordValidation)
-	}
-
+func (s *service) Login(ctx context.Context, in LoginIn) (out *AuthData, err error) {
 	user, err := s.usersService.GetByEmail(ctx, in.Email)
 	if err != nil {
 		if errors.Is(err, users_service.ErrUserNotFound) {
@@ -118,11 +105,16 @@ func (s *service) Login(ctx context.Context, in LoginIn) (out *LoginOut, err err
 		return nil, fmt.Errorf("%w: %v", ErrTokenGenerationFailed, err)
 	}
 
-	return &LoginOut{
-		UserID:       user.ID,
-		Email:        user.Email,
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
+	return &AuthData{
+		UserData: UserData{
+			ID:    user.ID,
+			Email: in.Email,
+		},
+		AccessToken: tokens.AccessToken,
+		RefreshData: RefreshData{
+			RefreshToken: tokens.RefreshToken,
+			ExpiresAt:    tokens.RefreshExpiresAt,
+		},
 	}, nil
 }
 
