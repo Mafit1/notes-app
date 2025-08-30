@@ -36,7 +36,7 @@ CREATE INDEX idx_notes_user_id_created_at ON notes(user_id, created_at DESC);
 
 CREATE TABLE refresh_tokens (
     token_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_id UUID NOT NULL,
     token_hash TEXT NOT NULL,
     expires_at TIMESTAMPTZ NOT NULL,
     revoked BOOLEAN DEFAULT FALSE,

@@ -20,6 +20,9 @@ func (app *App) EchoHandler() *echo.Echo {
 }
 
 func (app *App) configureRouter(handler *echo.Echo) {
+	// Auth routes
+	handler.POST("/register", app.PostAuthRegisterHandler().Handle)
+
 	notesGroup := handler.Group("/notes", app.AuthMW().Authenticate())
 	{
 		notesGroup.GET("", app.GetNotesHandler().Handle)

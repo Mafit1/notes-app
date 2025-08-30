@@ -38,6 +38,8 @@ type App struct {
 	authRepo  authRepo.Repository
 
 	// handlers
+	postAuthRegisterHandler api.Handler
+
 	deleteNoteHandler api.Handler
 
 	getNoteByIDHandler api.Handler
