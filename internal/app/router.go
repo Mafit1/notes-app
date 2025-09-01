@@ -22,11 +22,12 @@ func (app *App) EchoHandler() *echo.Echo {
 func (app *App) configureRouter(handler *echo.Echo) {
 	// Auth routes
 	handler.POST("/register", app.PostAuthRegisterHandler().Handle)
+	handler.POST("/login", app.PostAuthLoginHandler().Handle)
 
 	notesGroup := handler.Group("/notes", app.AuthMW().Authenticate())
 	{
 		notesGroup.GET("", app.GetNotesHandler().Handle)
-		notesGroup.GET("/:id", app.GetNoteByIDHandler().Handle)
+		notesGroup.GET("/:id", app.GetNotesByUserIDHandler().Handle)
 		notesGroup.POST("", app.PostNoteHandler().Handle)
 		notesGroup.DELETE("/:id", app.DeleteNoteHandler().Handle)
 		notesGroup.PUT("/:id", app.PutNoteHandler().Handle)

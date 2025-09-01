@@ -39,11 +39,13 @@ type App struct {
 
 	// handlers
 	postAuthRegisterHandler api.Handler
+	postAuthLoginHandler    api.Handler
 
 	deleteNoteHandler api.Handler
 
-	getNoteByIDHandler api.Handler
-	getNotesHandler    api.Handler
+	getNoteByIDHandler      api.Handler
+	getNotesHandler         api.Handler
+	getNotesByUserIDHandler api.Handler
 
 	postNoteHandler api.Handler
 

@@ -28,9 +28,9 @@ type Request struct {
 }
 
 type Responce struct {
-	UserID       uuid.UUID
-	AccessToken  string
-	RefreshToken string
+	UserID       uuid.UUID `json:"id" validate:"required"`
+	AccessToken  string    `json:"accessToken" validate:"required"`
+	RefreshToken string    `json:"refreshToken" validate:"required"`
 }
 
 func (h *handler) Handle(c echo.Context, in Request) error {

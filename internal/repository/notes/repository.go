@@ -18,6 +18,9 @@ var (
 	//go:embed sql/create.sql
 	sqlCreate string
 
+	//go:embed sql/create_by_user_id.sql
+	sqlCreateByUserID string
+
 	//go:embed sql/get_all.sql
 	sqlGetAll string
 
@@ -66,6 +69,27 @@ func (r *repository) Create(ctx context.Context, note CreateNote) (id int64, err
 	return id, nil
 }
 
+func (r *repository) CreateByUserID(ctx context.Context, userID uuid.UUID, note CreateNote) (id int64, err error) {
+	err = r.db.Pool.QueryRow(ctx, sqlCreateByUserID, userID, note.Title, note.Content).Scan(&id)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			return 0, fmt.Errorf(
+				"%w: database error code %s: %v",
+				ErrDatabase,
+				pgErr.Code,
+				pgErr.Message,
+			)
+		}
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			return 0, fmt.Errorf("%w: failed to scan after insert", ErrDatabase)
+		}
+		return 0, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
+	}
+	return id, nil
+}
+
 func (r *repository) GetAll(ctx context.Context) (notes []models.Note, err error) {
 	rows, err := r.db.Pool.Query(ctx, sqlGetAll)
 	if err != nil {
@@ -102,7 +126,7 @@ func (r *repository) GetAll(ctx context.Context) (notes []models.Note, err error
 	return notes, nil
 }
 
-func (r *repository) GetAllFromUserByID(ctx context.Context, userID uuid.UUID) (notes []models.Note, err error) {
+func (r *repository) GetAllFromUserByID(ctx context.Context, userID uuid.UUID) ([]*models.Note, error) {
 	rows, err := r.db.Pool.Query(ctx, sqlGetAllFromUserByID, userID)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -118,13 +142,13 @@ func (r *repository) GetAllFromUserByID(ctx context.Context, userID uuid.UUID) (
 	}
 	defer rows.Close()
 
-	notes = make([]models.Note, 0)
+	notes := make([]*models.Note, 0)
 	for rows.Next() {
 		var note models.Note
 		if err := rows.Scan(&note.ID, &note.Title, &note.Content); err != nil {
 			return nil, fmt.Errorf("%w: failed to scan row: %v", ErrDatabase, err)
 		}
-		notes = append(notes, note)
+		notes = append(notes, &note)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -132,13 +156,13 @@ func (r *repository) GetAllFromUserByID(ctx context.Context, userID uuid.UUID) (
 	}
 
 	if len(notes) == 0 {
-		return []models.Note{}, nil
+		return nil, nil
 	}
 
 	return notes, nil
 }
 
-func (r *repository) GetAllFromUserByEmail(ctx context.Context, userEmail string) (notes []models.Note, err error) {
+func (r *repository) GetAllFromUserByEmail(ctx context.Context, userEmail string) ([]*models.Note, error) {
 	rows, err := r.db.Pool.Query(ctx, sqlGetAllFromUserByEmail, userEmail)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -154,13 +178,13 @@ func (r *repository) GetAllFromUserByEmail(ctx context.Context, userEmail string
 	}
 	defer rows.Close()
 
-	notes = make([]models.Note, 0)
+	notes := make([]*models.Note, 0)
 	for rows.Next() {
 		var note models.Note
 		if err := rows.Scan(&note.ID, &note.Title, &note.Content); err != nil {
 			return nil, fmt.Errorf("%w: failed to scan row: %v", ErrDatabase, err)
 		}
-		notes = append(notes, note)
+		notes = append(notes, &note)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -168,7 +192,7 @@ func (r *repository) GetAllFromUserByEmail(ctx context.Context, userEmail string
 	}
 
 	if len(notes) == 0 {
-		return []models.Note{}, nil
+		return nil, nil
 	}
 
 	return notes, nil

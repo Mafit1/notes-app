@@ -116,7 +116,7 @@ func TestGetAll(t *testing.T) {
 				r.EXPECT().GetAll(ctx).Return(nil, assert.AnError)
 			},
 			want:    nil,
-			wantErr: notes_service.ErrCannotGetAllNotes,
+			wantErr: notes_service.ErrCannotGetNotes,
 		},
 	}
 
@@ -200,6 +200,10 @@ func TestGetByID(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
+}
+
+func TestGetByUserID(t *testing.T) {
+
 }
 
 func TestDelete(t *testing.T) {

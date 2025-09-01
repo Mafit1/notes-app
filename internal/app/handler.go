@@ -5,6 +5,8 @@ import (
 	deletenote "github.com/Mafit1/notes-app/internal/api/delete_note"
 	getnotebyid "github.com/Mafit1/notes-app/internal/api/get_note_by_id"
 	getnotes "github.com/Mafit1/notes-app/internal/api/get_notes"
+	getnotesbyuserid "github.com/Mafit1/notes-app/internal/api/get_notes_by_user_id"
+	postauthlogin "github.com/Mafit1/notes-app/internal/api/post_auth_login"
 	postauthregister "github.com/Mafit1/notes-app/internal/api/post_auth_register"
 	postnote "github.com/Mafit1/notes-app/internal/api/post_note"
 	putnote "github.com/Mafit1/notes-app/internal/api/put_note"
@@ -31,6 +33,13 @@ func (app *App) GetNotesHandler() api.Handler {
 	return app.getNotesHandler
 }
 
+func (app *App) GetNotesByUserIDHandler() api.Handler {
+	if app.getNotesByUserIDHandler == nil {
+		app.getNotesByUserIDHandler = getnotesbyuserid.New(app.NotesService())
+	}
+	return app.getNotesByUserIDHandler
+}
+
 func (app *App) PostNoteHandler() api.Handler {
 	if app.postNoteHandler == nil {
 		app.postNoteHandler = postnote.New(app.NotesService())
@@ -50,4 +59,11 @@ func (app *App) PostAuthRegisterHandler() api.Handler {
 		app.postAuthRegisterHandler = postauthregister.New(app.AuthService())
 	}
 	return app.postAuthRegisterHandler
+}
+
+func (app *App) PostAuthLoginHandler() api.Handler {
+	if app.postAuthLoginHandler == nil {
+		app.postAuthLoginHandler = postauthlogin.New(app.AuthService())
+	}
+	return app.postAuthLoginHandler
 }

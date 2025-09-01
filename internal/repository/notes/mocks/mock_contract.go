@@ -52,6 +52,21 @@ func (mr *MockRepositoryMockRecorder) Create(arg0, arg1 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRepository)(nil).Create), arg0, arg1)
 }
 
+// CreateByUserID mocks base method.
+func (m *MockRepository) CreateByUserID(arg0 context.Context, arg1 uuid.UUID, arg2 notes.CreateNote) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateByUserID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateByUserID indicates an expected call of CreateByUserID.
+func (mr *MockRepositoryMockRecorder) CreateByUserID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateByUserID", reflect.TypeOf((*MockRepository)(nil).CreateByUserID), arg0, arg1, arg2)
+}
+
 // Delete mocks base method.
 func (m *MockRepository) Delete(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
@@ -82,10 +97,10 @@ func (mr *MockRepositoryMockRecorder) GetAll(arg0 interface{}) *gomock.Call {
 }
 
 // GetAllFromUserByEmail mocks base method.
-func (m *MockRepository) GetAllFromUserByEmail(arg0 context.Context, arg1 string) ([]models.Note, error) {
+func (m *MockRepository) GetAllFromUserByEmail(arg0 context.Context, arg1 string) ([]*models.Note, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllFromUserByEmail", arg0, arg1)
-	ret0, _ := ret[0].([]models.Note)
+	ret0, _ := ret[0].([]*models.Note)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -97,10 +112,10 @@ func (mr *MockRepositoryMockRecorder) GetAllFromUserByEmail(arg0, arg1 interface
 }
 
 // GetAllFromUserByID mocks base method.
-func (m *MockRepository) GetAllFromUserByID(arg0 context.Context, arg1 uuid.UUID) ([]models.Note, error) {
+func (m *MockRepository) GetAllFromUserByID(arg0 context.Context, arg1 uuid.UUID) ([]*models.Note, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllFromUserByID", arg0, arg1)
-	ret0, _ := ret[0].([]models.Note)
+	ret0, _ := ret[0].([]*models.Note)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

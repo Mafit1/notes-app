@@ -1,4 +1,4 @@
-package postnote
+package getnotesbyuserid
 
 import (
 	"net/http"
@@ -11,11 +11,11 @@ import (
 )
 
 type handler struct {
-	noteService notes.Service
+	notesService notes.Service
 }
 
-func New(noteService notes.Service) api.Handler {
-	return decorator.NewBindAndValidate(&handler{noteService})
+func New(notesService notes.Service) api.Handler {
+	return decorator.NewBindAndValidate(&handler{notesService})
 }
 
 type Note struct {
@@ -24,13 +24,10 @@ type Note struct {
 	Content string `json:"content"`
 }
 
-type Request struct {
-	Title   string `json:"title" validate:"required"`
-	Content string `json:"content" validate:"required"`
-}
+type Request struct{}
 
 type Responce struct {
-	ID int64 `json:"id"`
+	Notes []Note `json:"notes"`
 }
 
 func (h *handler) Handle(c echo.Context, in Request) error {
@@ -39,15 +36,10 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid userID in context")
 	}
 
-	note := notes.CreateNote{
-		Title:   in.Title,
-		Content: in.Content,
-	}
-
-	id, err := h.noteService.CreateByUserID(c.Request().Context(), userID, note)
+	notes, err := h.notesService.GetAllByUserID(c.Request().Context(), userID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusCreated, Responce{ID: id})
+	return c.JSON(http.StatusOK, notes)
 }
