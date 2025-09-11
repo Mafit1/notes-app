@@ -23,6 +23,8 @@ func (app *App) configureRouter(handler *echo.Echo) {
 	// Auth routes
 	handler.POST("/register", app.PostAuthRegisterHandler().Handle)
 	handler.POST("/login", app.PostAuthLoginHandler().Handle)
+	handler.POST("/logout", app.PostAuthLogoutHandler().Handle)
+	handler.POST("/refresh", app.PostAuthRefreshHandler().Handle)
 
 	notesGroup := handler.Group("/notes", app.AuthMW().Authenticate())
 	{

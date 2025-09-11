@@ -7,6 +7,8 @@ import (
 	getnotes "github.com/Mafit1/notes-app/internal/api/get_notes"
 	getnotesbyuserid "github.com/Mafit1/notes-app/internal/api/get_notes_by_user_id"
 	postauthlogin "github.com/Mafit1/notes-app/internal/api/post_auth_login"
+	postauthlogout "github.com/Mafit1/notes-app/internal/api/post_auth_logout"
+	postauthrefresh "github.com/Mafit1/notes-app/internal/api/post_auth_refresh"
 	postauthregister "github.com/Mafit1/notes-app/internal/api/post_auth_register"
 	postnote "github.com/Mafit1/notes-app/internal/api/post_note"
 	putnote "github.com/Mafit1/notes-app/internal/api/put_note"
@@ -66,4 +68,18 @@ func (app *App) PostAuthLoginHandler() api.Handler {
 		app.postAuthLoginHandler = postauthlogin.New(app.AuthService())
 	}
 	return app.postAuthLoginHandler
+}
+
+func (app *App) PostAuthLogoutHandler() api.Handler {
+	if app.postAuthLogoutHandler == nil {
+		app.postAuthLogoutHandler = postauthlogout.New(app.AuthService())
+	}
+	return app.postAuthLogoutHandler
+}
+
+func (app *App) PostAuthRefreshHandler() api.Handler {
+	if app.postAuthRefreshHandler == nil {
+		app.postAuthRefreshHandler = postauthrefresh.New(app.AuthService())
+	}
+	return app.postAuthRefreshHandler
 }

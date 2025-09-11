@@ -118,21 +118,21 @@ func (s *service) Login(ctx context.Context, in LoginIn) (out *AuthData, err err
 	}, nil
 }
 
-func (s *service) Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error {
-	token, err := s.authRepo.GetByPlain(ctx, refreshToken, userID, s.hasher)
+func (s *service) Logout(ctx context.Context, refreshToken string) error {
+	return s.jwtService.RevokeRefreshToken(ctx, refreshToken)
+}
+
+func (s *service) RefreshTokens(ctx context.Context, refreshToken string) (*RefreshOut, error) {
+	out, err := s.jwtService.RefreshAccessToken(ctx, refreshToken)
 	if err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
+		return nil, fmt.Errorf("%w: %v", ErrCannotRefresh, err)
 	}
 
-	if !token.IsActive() {
-		return fmt.Errorf("%w: token is already inactive", ErrCannotLogout)
-	}
-
-	if err := s.authRepo.Revoke(ctx, token.TokenID); err != nil {
-		return fmt.Errorf("failed to revoke token: %v", err)
-	}
-
-	return nil
+	return &RefreshOut{
+		AccessToken:      out.AccessToken,
+		RefreshToken:     out.RefreshToken,
+		RefreshExpiresAt: out.RefreshExpiresAt,
+	}, nil
 }
 
 func (s *service) RevokeAll(ctx context.Context, userID uuid.UUID) (int64, error) {

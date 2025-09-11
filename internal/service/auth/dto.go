@@ -32,3 +32,9 @@ type RefreshData struct {
 	RefreshToken string
 	ExpiresAt    time.Time
 }
+
+type RefreshOut struct {
+	AccessToken      string
+	RefreshToken     string
+	RefreshExpiresAt time.Time
+}

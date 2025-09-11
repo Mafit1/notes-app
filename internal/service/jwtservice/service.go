@@ -2,6 +2,9 @@ package jwtservice
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -55,10 +58,9 @@ func (s *service) GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut
 	}
 
 	refreshTokenPlain := uuid.New().String()
-	refreshTokenHash, err := s.hasher.Hash(refreshTokenPlain)
-	if err != nil {
-		return nil, fmt.Errorf("failed to hash refresh token: %w", err)
-	}
+	h := hmac.New(sha256.New, s.refreshSecret)
+	h.Write([]byte(refreshTokenPlain))
+	refreshTokenHash := hex.EncodeToString(h.Sum(nil))
 
 	_, err = s.authRepo.Create(ctx, auth_repo.RefreshTokenIn{
 		UserID:    in.UserID,
@@ -85,10 +87,9 @@ func (s *service) RotatePair(ctx context.Context, oldTokenID uuid.UUID, in Gener
 	}
 
 	newRefreshPlain := uuid.New().String()
-	newRefreshHash, err := s.hasher.Hash(newRefreshPlain)
-	if err != nil {
-		return nil, fmt.Errorf("failed to hash new refresh token: %w", err)
-	}
+	h := hmac.New(sha256.New, s.refreshSecret)
+	h.Write([]byte(newRefreshPlain))
+	newRefreshHash := hex.EncodeToString(h.Sum(nil))
 
 	_, err = s.authRepo.Create(ctx, auth_repo.RefreshTokenIn{
 		UserID:    in.UserID,
@@ -110,8 +111,8 @@ func (s *service) RotatePair(ctx context.Context, oldTokenID uuid.UUID, in Gener
 	}, nil
 }
 
-func (s *service) RefreshAccessToken(ctx context.Context, userID uuid.UUID, refreshToken string) (*GenerateOut, error) {
-	token, err := s.authRepo.GetByPlain(ctx, refreshToken, userID, s.hasher)
+func (s *service) RefreshAccessToken(ctx context.Context, refreshToken string) (*GenerateOut, error) {
+	token, err := s.authRepo.GetByPlain(ctx, refreshToken, s.refreshSecret)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
 	}
@@ -130,6 +131,23 @@ func (s *service) RefreshAccessToken(ctx context.Context, userID uuid.UUID, refr
 		Email:  user.Email,
 		Role:   string(user.Role),
 	})
+}
+
+func (s *service) RevokeRefreshToken(ctx context.Context, tokenPlain string) error {
+	token, err := s.authRepo.GetByPlain(ctx, tokenPlain, s.refreshSecret)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidRefreshToken, err)
+	}
+
+	if !token.IsActive() {
+		return fmt.Errorf("%w: token is already inactive", ErrTokenRevoked)
+	}
+
+	if err := s.authRepo.Revoke(ctx, token.TokenID); err != nil {
+		return fmt.Errorf("failed to revoke token: %v", err)
+	}
+
+	return nil
 }
 
 func (s *service) ValidateToken(tokenString string) (bool, error) {

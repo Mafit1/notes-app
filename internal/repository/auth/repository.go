@@ -2,12 +2,14 @@ package auth
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/Mafit1/notes-app/pkg/hasher"
 	"github.com/Mafit1/notes-app/pkg/postgres"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -111,19 +113,16 @@ func (r *repository) GetByHash(ctx context.Context, hash string) (*RefreshTokenO
 	return &token, nil
 }
 
-func (r *repository) GetByPlain(ctx context.Context, plain string, userID uuid.UUID, hasher hasher.Hasher) (*RefreshTokenOut, error) {
-	tokens, err := r.GetAllByUser(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch tokens: %w", err)
+func (r *repository) GetByPlain(ctx context.Context, plain string, hmacKey []byte) (*RefreshTokenOut, error) {
+	if plain == "" || len(hmacKey) == 0 {
+		return nil, fmt.Errorf("invalid token or HMAC key")
 	}
 
-	for _, token := range tokens {
-		if hasher.Match(plain, token.TokenHash) {
-			return token, nil
-		}
-	}
+	h := hmac.New(sha256.New, hmacKey)
+	h.Write([]byte(plain))
+	tokenHash := hex.EncodeToString(h.Sum(nil))
 
-	return nil, fmt.Errorf("%w: token not found", ErrInvalidRefreshToken)
+	return r.GetByHash(ctx, tokenHash)
 }
 
 func (r *repository) GetByID(ctx context.Context, tokenID uuid.UUID) (*RefreshTokenOut, error) {

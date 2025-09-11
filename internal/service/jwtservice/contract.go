@@ -10,7 +10,8 @@ import (
 type Service interface {
 	GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut, error)
 	RotatePair(ctx context.Context, oldTokenID uuid.UUID, in GenerateIn) (*GenerateOut, error)
-	RefreshAccessToken(ctx context.Context, userID uuid.UUID, refreshToken string) (*GenerateOut, error)
+	RefreshAccessToken(ctx context.Context, refreshToken string) (*GenerateOut, error)
+	RevokeRefreshToken(ctx context.Context, tokenPlain string) error
 	ValidateToken(tokenString string) (bool, error)
 	ParseAccessToken(tokenString string) (*models.AccessTokenClaims, error)
 }

@@ -40,6 +40,8 @@ type App struct {
 	// handlers
 	postAuthRegisterHandler api.Handler
 	postAuthLoginHandler    api.Handler
+	postAuthLogoutHandler   api.Handler
+	postAuthRefreshHandler  api.Handler
 
 	deleteNoteHandler api.Handler
 

@@ -18,7 +18,7 @@ type RefreshTokenOut struct {
 	TokenHash string
 	ExpiresAt time.Time
 	Revoked   bool
-	RevokedAt time.Time
+	RevokedAt *time.Time
 }
 
 func (rt *RefreshTokenOut) IsExpired() bool {
@@ -32,5 +32,5 @@ func (rt *RefreshTokenOut) IsActive() bool {
 func (rt *RefreshTokenOut) Revoke() {
 	now := time.Now()
 	rt.Revoked = true
-	rt.RevokedAt = now
+	rt.RevokedAt = &now
 }

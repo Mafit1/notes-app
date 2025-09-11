@@ -28,9 +28,8 @@ type Request struct {
 }
 
 type Responce struct {
-	UserID       uuid.UUID `json:"id" validate:"required"`
-	AccessToken  string    `json:"accessToken" validate:"required"`
-	RefreshToken string    `json:"refreshToken" validate:"required"`
+	UserID      uuid.UUID `json:"id" validate:"required"`
+	AccessToken string    `json:"accessToken" validate:"required"`
 }
 
 func (h *handler) Handle(c echo.Context, in Request) error {
@@ -53,13 +52,12 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		Name:     refresh.RefreshTokenCookie,
 		Value:    authData.RefreshData.RefreshToken,
 		Expires:  authData.RefreshData.ExpiresAt,
-		Path:     "/api/auth",
+		Path:     "/",
 		HttpOnly: true,
 	})
 
 	return c.JSON(http.StatusAccepted, Responce{
-		UserID:       authData.UserData.ID,
-		AccessToken:  authData.AccessToken,
-		RefreshToken: authData.RefreshData.RefreshToken,
+		UserID:      authData.UserData.ID,
+		AccessToken: authData.AccessToken,
 	})
 }

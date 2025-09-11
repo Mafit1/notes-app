@@ -16,4 +16,5 @@ var (
 	ErrCannotCreateRefreshToken    = errors.New("cannot create refresh token")
 	ErrInvalidCredentials          = errors.New("invalid credentials")
 	ErrCannotLogout                = errors.New("cannot logout")
+	ErrCannotRefresh               = errors.New("cannot refresh tokens")
 )
