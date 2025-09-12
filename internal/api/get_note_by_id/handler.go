@@ -7,6 +7,7 @@ import (
 	"github.com/Mafit1/notes-app/internal/api"
 	"github.com/Mafit1/notes-app/internal/api/common/decorator"
 	"github.com/Mafit1/notes-app/internal/service/notes"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,7 +34,12 @@ type Responce struct {
 }
 
 func (h *handler) Handle(c echo.Context, in Request) error {
-	note, err := h.noteService.GetByID(c.Request().Context(), in.ID)
+	userID, ok := c.Get("userID").(uuid.UUID)
+	if !ok {
+		return echo.NewHTTPError(http.StatusUnauthorized, "invalid userID in context")
+	}
+
+	note, err := h.noteService.GetByID(c.Request().Context(), userID, in.ID)
 	if err != nil {
 		if errors.Is(err, notes.ErrNoteNotFound) {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())

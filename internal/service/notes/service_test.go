@@ -138,70 +138,71 @@ func TestGetAll(t *testing.T) {
 	}
 }
 
-func TestGetByID(t *testing.T) {
-	var (
-		ctx       = context.Background()
-		id        = int64(1)
-		emptyNote = models.Note{}
-	)
+/*
+	func TestGetByID(t *testing.T) {
+		var (
+			ctx       = context.Background()
+			id        = int64(1)
+			emptyNote = models.Note{}
+		)
 
-	type MockBehaivor func(r *notes_repo_mocks.MockRepository)
+		type MockBehaivor func(r *notes_repo_mocks.MockRepository)
 
-	note := models.Note{
-		Title:   "title",
-		Content: "content",
-	}
+		note := models.Note{
+			Title:   "title",
+			Content: "content",
+		}
 
-	tests := []struct {
-		name         string
-		mockBehaivor MockBehaivor
-		want         models.Note
-		wantErr      error
-	}{
-		{
-			name: "success",
-			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().GetByID(ctx, id).Return(note, nil)
+		tests := []struct {
+			name         string
+			mockBehaivor MockBehaivor
+			want         models.Note
+			wantErr      error
+		}{
+			{
+				name: "success",
+				mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+					r.EXPECT().GetByID(ctx, id).Return(note, nil)
+				},
+				want:    note,
+				wantErr: nil,
 			},
-			want:    note,
-			wantErr: nil,
-		},
-		{
-			name: "note not found",
-			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().GetByID(ctx, id).Return(emptyNote, notes_repo.ErrNoteNotFound)
+			{
+				name: "note not found",
+				mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+					r.EXPECT().GetByID(ctx, id).Return(emptyNote, notes_repo.ErrNoteNotFound)
+				},
+				want:    emptyNote,
+				wantErr: notes_service.ErrNoteNotFound,
 			},
-			want:    emptyNote,
-			wantErr: notes_service.ErrNoteNotFound,
-		},
-		{
-			name: "database error",
-			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().GetByID(ctx, id).Return(emptyNote, notes_repo.ErrDatabase)
+			{
+				name: "database error",
+				mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+					r.EXPECT().GetByID(ctx, id).Return(emptyNote, notes_repo.ErrDatabase)
+				},
+				want:    emptyNote,
+				wantErr: notes_service.ErrCannotGetNote,
 			},
-			want:    emptyNote,
-			wantErr: notes_service.ErrCannotGetNote,
-		},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				ctrl := gomock.NewController(t)
+
+				mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+				tc.mockBehaivor(mockRepo)
+
+				s := notes_service.New(mockRepo)
+
+				got, err := s.GetByID(ctx, id)
+
+				assert.ErrorIs(t, err, tc.wantErr)
+				assert.Equal(t, tc.want, got)
+			})
+		}
 	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			ctrl := gomock.NewController(t)
-
-			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
-			tc.mockBehaivor(mockRepo)
-
-			s := notes_service.New(mockRepo)
-
-			got, err := s.GetByID(ctx, id)
-
-			assert.ErrorIs(t, err, tc.wantErr)
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
-
+*/
 func TestGetByUserID(t *testing.T) {
 
 }

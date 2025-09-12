@@ -55,15 +55,24 @@ func (s *service) GetAll(ctx context.Context) (notes []models.Note, err error) {
 	return notes, nil
 }
 
-func (s *service) GetByID(ctx context.Context, id int64) (note models.Note, err error) {
-	note, err = s.notesRepository.GetByID(ctx, id)
+func (s *service) GetByID(ctx context.Context, userID uuid.UUID, noteID int64) (*models.Note, error) {
+	note, err := s.notesRepository.GetByID(ctx, noteID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrNoteNotFound, err)
+	}
+
+	if note.UserID != userID {
+		return nil, ErrForbidden
+	}
+
+	note, err = s.notesRepository.GetByID(ctx, noteID)
 	if err != nil {
 		if errors.Is(err, notes_repo.ErrNoteNotFound) {
-			return models.Note{}, ErrNoteNotFound
+			return nil, ErrNoteNotFound
 		}
-		return models.Note{}, ErrCannotGetNote
+		return nil, ErrCannotGetNote
 	}
-	return note, nil
+	return &note, nil
 }
 
 func (s *service) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Note, error) {
