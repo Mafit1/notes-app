@@ -14,6 +14,6 @@ type Service interface {
 	GetAll(ctx context.Context) ([]models.Note, error)
 	GetByID(ctx context.Context, id int64) (models.Note, error)
 	GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]*models.Note, error)
-	Delete(ctx context.Context, id int64) error
-	Update(ctx context.Context, note models.Note) (models.Note, error)
+	Delete(ctx context.Context, userID uuid.UUID, noteID int64) error
+	Update(ctx context.Context, userID uuid.UUID, note models.Note) (*models.Note, error)
 }

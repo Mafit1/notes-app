@@ -201,7 +201,7 @@ func (r *repository) GetAllFromUserByEmail(ctx context.Context, userEmail string
 func (r *repository) GetByID(ctx context.Context, id int64) (note models.Note, err error) {
 	row := r.db.Pool.QueryRow(ctx, sqlGetById, id)
 
-	if err := row.Scan(&note.ID, &note.Title, &note.Content); err != nil {
+	if err := row.Scan(&note.ID, &note.Title, &note.Content, &note.UserID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return models.Note{}, fmt.Errorf("%w: note with id: %d not found", ErrNoteNotFound, id)
 		}

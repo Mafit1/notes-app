@@ -9,4 +9,5 @@ var (
 	ErrNoteNotFound     = errors.New("note not found")
 	ErrCannotUpdateNote = errors.New("cannot update note")
 	ErrCannotDeleteNote = errors.New("cannot delete note")
+	ErrForbidden        = errors.New("forbidden: you can modify only your own notes")
 )

@@ -5,9 +5,11 @@ import (
 
 	"github.com/Mafit1/notes-app/internal/api"
 	"github.com/Mafit1/notes-app/internal/api/common/decorator"
+	"github.com/Mafit1/notes-app/internal/models"
 	"github.com/Mafit1/notes-app/internal/service/notes"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
 )
 
 type handler struct {
@@ -41,5 +43,13 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.JSON(http.StatusOK, notes)
+	responceNotes := lo.Map(notes, func(n *models.Note, _ int) Note {
+		return Note{
+			ID:      n.ID,
+			Title:   n.Title,
+			Content: n.Content,
+		}
+	})
+
+	return c.JSON(http.StatusOK, Responce{responceNotes})
 }

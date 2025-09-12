@@ -52,18 +52,33 @@ func (mr *MockServiceMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockService)(nil).Create), arg0, arg1)
 }
 
-// Delete mocks base method.
-func (m *MockService) Delete(arg0 context.Context, arg1 int64) error {
+// CreateByUserID mocks base method.
+func (m *MockService) CreateByUserID(arg0 context.Context, arg1 uuid.UUID, arg2 notes.CreateNote) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateByUserID", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateByUserID indicates an expected call of CreateByUserID.
+func (mr *MockServiceMockRecorder) CreateByUserID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateByUserID", reflect.TypeOf((*MockService)(nil).CreateByUserID), arg0, arg1, arg2)
+}
+
+// Delete mocks base method.
+func (m *MockService) Delete(arg0 context.Context, arg1 uuid.UUID, arg2 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockServiceMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockService)(nil).Delete), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockService)(nil).Delete), arg0, arg1, arg2)
 }
 
 // GetAll mocks base method.
@@ -112,16 +127,16 @@ func (mr *MockServiceMockRecorder) GetByID(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // Update mocks base method.
-func (m *MockService) Update(arg0 context.Context, arg1 models.Note) (models.Note, error) {
+func (m *MockService) Update(arg0 context.Context, arg1 uuid.UUID, arg2 models.Note) (models.Note, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret := m.ctrl.Call(m, "Update", arg0, arg1, arg2)
 	ret0, _ := ret[0].(models.Note)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockServiceMockRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) Update(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockService)(nil).Update), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockService)(nil).Update), arg0, arg1, arg2)
 }

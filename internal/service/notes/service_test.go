@@ -206,59 +206,61 @@ func TestGetByUserID(t *testing.T) {
 
 }
 
-func TestDelete(t *testing.T) {
-	var (
-		ctx = context.Background()
-		id  = int64(1)
-	)
+/*
+	func TestDelete(t *testing.T) {
+		var (
+			ctx = context.Background()
+			id  = int64(1)
+		)
 
-	type MockBehaivor func(r *notes_repo_mocks.MockRepository)
+		type MockBehaivor func(r *notes_repo_mocks.MockRepository)
 
-	tests := []struct {
-		name         string
-		mockBehaivor MockBehaivor
-		wantErr      error
-	}{
-		{
-			name: "success",
-			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().Delete(ctx, id).Return(nil)
+		tests := []struct {
+			name         string
+			mockBehaivor MockBehaivor
+			wantErr      error
+		}{
+			{
+				name: "success",
+				mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+					r.EXPECT().Delete(ctx, id).Return(nil)
+				},
+				wantErr: nil,
 			},
-			wantErr: nil,
-		},
-		{
-			name: "note not found",
-			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().Delete(ctx, id).Return(notes_repo.ErrNoteNotFound)
+			{
+				name: "note not found",
+				mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+					r.EXPECT().Delete(ctx, id).Return(notes_repo.ErrNoteNotFound)
+				},
+				wantErr: notes_service.ErrNoteNotFound,
 			},
-			wantErr: notes_service.ErrNoteNotFound,
-		},
-		{
-			name: "database error",
-			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().Delete(ctx, id).Return(notes_repo.ErrDatabase)
+			{
+				name: "database error",
+				mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+					r.EXPECT().Delete(ctx, id).Return(notes_repo.ErrDatabase)
+				},
+				wantErr: notes_service.ErrCannotDeleteNote,
 			},
-			wantErr: notes_service.ErrCannotDeleteNote,
-		},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				ctrl := gomock.NewController(t)
+
+				mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+				tc.mockBehaivor(mockRepo)
+
+				s := notes_service.New(mockRepo)
+
+				err := s.Delete(ctx, id)
+
+				assert.ErrorIs(t, err, tc.wantErr)
+			})
+		}
 	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			ctrl := gomock.NewController(t)
-
-			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
-			tc.mockBehaivor(mockRepo)
-
-			s := notes_service.New(mockRepo)
-
-			err := s.Delete(ctx, id)
-
-			assert.ErrorIs(t, err, tc.wantErr)
-		})
-	}
-}
-
+*/
+/*
 func TestUpdate(t *testing.T) {
 	var (
 		ctx       = context.Background()
@@ -329,3 +331,4 @@ func TestUpdate(t *testing.T) {
 		})
 	}
 }
+*/

@@ -3,6 +3,7 @@ package notes
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/Mafit1/notes-app/internal/models"
 	notes_repo "github.com/Mafit1/notes-app/internal/repository/notes"
@@ -73,8 +74,17 @@ func (s *service) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]*mode
 	return notes, nil
 }
 
-func (s *service) Delete(ctx context.Context, id int64) error {
-	err := s.notesRepository.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, userID uuid.UUID, noteID int64) error {
+	note, err := s.notesRepository.GetByID(ctx, noteID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrNoteNotFound, err)
+	}
+
+	if note.UserID != userID {
+		return ErrForbidden
+	}
+
+	err = s.notesRepository.Delete(ctx, noteID)
 	if err != nil {
 		if errors.Is(err, notes_repo.ErrNoteNotFound) {
 			return ErrNoteNotFound
@@ -84,13 +94,22 @@ func (s *service) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *service) Update(ctx context.Context, note models.Note) (updatedNote models.Note, err error) {
-	updatedNote, err = s.notesRepository.Update(ctx, note)
+func (s *service) Update(ctx context.Context, userID uuid.UUID, note models.Note) (*models.Note, error) {
+	n, err := s.notesRepository.GetByID(ctx, note.ID)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrNoteNotFound, err)
+	}
+
+	if n.UserID != userID {
+		return nil, ErrForbidden
+	}
+
+	updatedNote, err := s.notesRepository.Update(ctx, note)
 	if err != nil {
 		if errors.Is(err, notes_repo.ErrNoteNotFound) {
-			return models.Note{}, ErrNoteNotFound
+			return nil, ErrNoteNotFound
 		}
-		return models.Note{}, ErrCannotUpdateNote
+		return nil, ErrCannotUpdateNote
 	}
-	return updatedNote, nil
+	return &updatedNote, nil
 }
