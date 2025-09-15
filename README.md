@@ -22,10 +22,14 @@ Notes API server on Go for taking notes with PostgreSQL database.
 
 ### API Endpoints
 
-| Method | Endpoint   | Description          | Sample request body                                   |
-| ------ | ---------- | -------------------- | ----------------------------------------------------- |
-| POST   | /notes     | Create note          | {"title": "Shop list","content": "Bread, milk"}       |
-| GET    | /notes     | Get all notes        | -                                                     |
-| GET    | /notes/:id | Get note with id     | -                                                     |
-| PUT    | /notes/:id | Update note          | {"title": "Shop list","content": "Bread, milk, eggs"} |
-| DELETE | /notes/:id | Delete note          | -                                                     |
+| Method | Endpoint   | Description          | Sample request body                                                |
+| ------ | ---------- | -------------------- | ------------------------------------------------------------------ |
+| POST   | /register  | Registration         | {"name": "user","email": "email@gmail.com","password": "123456789" |
+| POST   | /login     | Login                | {"email": "email@gmail.com","password": "123456789"                |
+| POST   | /refresh   | Refresh tokens       | -                                                                  |
+| POST   | /logout    | Logout               | -                                                                  |
+| POST   | /notes     | Create note          | {"title": "Shop list","content": "Bread, milk"}                    |
+| GET    | /notes     | Get all notes        | -                                                                  |
+| GET    | /notes/:id | Get note with id     | -                                                                  |
+| PUT    | /notes/:id | Update note          | {"title": "Shop list","content": "Bread, milk, eggs"}              |
+| DELETE | /notes/:id | Delete note          | -                                                                  |
