@@ -2,11 +2,6 @@ package hasher
 
 import "golang.org/x/crypto/bcrypt"
 
-type Hasher interface {
-	Hash(password string) (string, error)
-	Match(password, hashedPassword string) bool
-}
-
 type bcryptHasher struct{}
 
 func NewBcrypt() Hasher {

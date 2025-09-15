@@ -81,34 +81,16 @@ func (s *service) GeneratePair(ctx context.Context, in GenerateIn) (*GenerateOut
 }
 
 func (s *service) RotatePair(ctx context.Context, oldTokenID uuid.UUID, in GenerateIn) (*GenerateOut, error) {
-	accessToken, err := s.generateJWT(in, s.accessSecret, s.accessExpiry)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate access token: %w", err)
-	}
-
-	newRefreshPlain := uuid.New().String()
-	h := hmac.New(sha256.New, s.refreshSecret)
-	h.Write([]byte(newRefreshPlain))
-	newRefreshHash := hex.EncodeToString(h.Sum(nil))
-
-	_, err = s.authRepo.Create(ctx, auth_repo.RefreshTokenIn{
-		UserID:    in.UserID,
-		TokenHash: newRefreshHash,
-		TTL:       s.refreshExpiry,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to save new refresh token: %w", err)
-	}
-
 	if err := s.authRepo.Revoke(ctx, oldTokenID); err != nil {
 		return nil, fmt.Errorf("failed to revoke old refresh token: %w", err)
 	}
 
-	return &GenerateOut{
-		AccessToken:      accessToken,
-		RefreshToken:     newRefreshPlain,
-		RefreshExpiresAt: time.Now().Add(s.refreshExpiry),
-	}, nil
+	pair, err := s.GeneratePair(ctx, in)
+	if err != nil {
+		return nil, fmt.Errorf("cannot generate pair: %v", err)
+	}
+
+	return pair, nil
 }
 
 func (s *service) RefreshAccessToken(ctx context.Context, refreshToken string) (*GenerateOut, error) {

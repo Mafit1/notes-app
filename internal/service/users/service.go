@@ -19,14 +19,6 @@ func New(repo users_repo.Repository) Service {
 }
 
 func (s *service) Create(ctx context.Context, user CreateUser) (id uuid.UUID, err error) {
-	emailExist, err := s.usersRepository.EmailExists(ctx, user.Email)
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("%w: %v", ErrFailedToCheckEmail, err)
-	}
-	if emailExist {
-		return uuid.Nil, fmt.Errorf("%w: user with email %s already exists", ErrUserAlreadyExists, user.Email)
-	}
-
 	id, err = s.usersRepository.Create(
 		ctx,
 		users_repo.CreateUser{

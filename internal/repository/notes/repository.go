@@ -48,27 +48,6 @@ func New(postgres *postgres.Postgres) Repository {
 	return &repository{postgres}
 }
 
-func (r *repository) Create(ctx context.Context, note CreateNote) (id int64, err error) {
-	err = r.db.Pool.QueryRow(ctx, sqlCreate, note.Title, note.Content).Scan(&id)
-	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			return 0, fmt.Errorf(
-				"%w: database error code %s: %v",
-				ErrDatabase,
-				pgErr.Code,
-				pgErr.Message,
-			)
-		}
-		// This check may be unnecessary.
-		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, fmt.Errorf("%w: failed to scan after insert", ErrDatabase)
-		}
-		return 0, fmt.Errorf("%w: query execution failed: %v", ErrDatabase, err)
-	}
-	return id, nil
-}
-
 func (r *repository) CreateByUserID(ctx context.Context, userID uuid.UUID, note CreateNote) (id int64, err error) {
 	err = r.db.Pool.QueryRow(ctx, sqlCreateByUserID, userID, note.Title, note.Content).Scan(&id)
 	if err != nil {

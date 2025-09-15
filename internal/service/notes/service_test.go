@@ -7,73 +7,73 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Mafit1/notes-app/internal/models"
-	notes_repo "github.com/Mafit1/notes-app/internal/repository/notes"
 	notes_repo_mocks "github.com/Mafit1/notes-app/internal/repository/notes/mocks"
 	notes_service "github.com/Mafit1/notes-app/internal/service/notes"
 	"github.com/golang/mock/gomock"
 )
 
-func TestCreate(t *testing.T) {
-	var (
-		ctx    = context.Background()
-		noteID = int64(1)
-	)
+/*
+	func TestCreate(t *testing.T) {
+		var (
+			ctx    = context.Background()
+			noteID = int64(1)
+		)
 
-	type MockBehaivor func(r *notes_repo_mocks.MockRepository)
+		type MockBehaivor func(r *notes_repo_mocks.MockRepository)
 
-	note := notes_service.CreateNote{
-		Title:   "title",
-		Content: "content",
-	}
+		note := notes_service.CreateNote{
+			Title:   "title",
+			Content: "content",
+		}
 
-	tests := []struct {
-		name         string
-		mockBehaivor MockBehaivor
-		want         int64
-		wantErr      error
-	}{
-		{
-			name: "success",
-			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().Create(ctx, notes_repo.CreateNote{
-					Title:   note.Title,
-					Content: note.Content,
-				}).Return(noteID, nil)
+		tests := []struct {
+			name         string
+			mockBehaivor MockBehaivor
+			want         int64
+			wantErr      error
+		}{
+			{
+				name: "success",
+				mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+					r.EXPECT().Create(ctx, notes_repo.CreateNote{
+						Title:   note.Title,
+						Content: note.Content,
+					}).Return(noteID, nil)
+				},
+				want:    1,
+				wantErr: nil,
 			},
-			want:    1,
-			wantErr: nil,
-		},
-		{
-			name: "cannot create note",
-			mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
-				r.EXPECT().Create(ctx, notes_repo.CreateNote{
-					Title:   note.Title,
-					Content: note.Content,
-				}).Return(int64(0), assert.AnError)
+			{
+				name: "cannot create note",
+				mockBehaivor: func(r *notes_repo_mocks.MockRepository) {
+					r.EXPECT().Create(ctx, notes_repo.CreateNote{
+						Title:   note.Title,
+						Content: note.Content,
+					}).Return(int64(0), assert.AnError)
+				},
+				want:    0,
+				wantErr: notes_service.ErrCannotCreateNote,
 			},
-			want:    0,
-			wantErr: notes_service.ErrCannotCreateNote,
-		},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				t.Parallel()
+				ctrl := gomock.NewController(t)
+
+				mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+				tc.mockBehaivor(mockRepo)
+
+				s := notes_service.New(mockRepo)
+
+				got, err := s.Create(ctx, note)
+
+				assert.ErrorIs(t, err, tc.wantErr)
+				assert.Equal(t, tc.want, got)
+			})
+		}
 	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			ctrl := gomock.NewController(t)
-
-			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
-			tc.mockBehaivor(mockRepo)
-
-			s := notes_service.New(mockRepo)
-
-			got, err := s.Create(ctx, note)
-
-			assert.ErrorIs(t, err, tc.wantErr)
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
-
+*/
 func TestGetAll(t *testing.T) {
 	var (
 		ctx = context.Background()

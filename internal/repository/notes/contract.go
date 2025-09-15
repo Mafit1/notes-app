@@ -9,7 +9,6 @@ import (
 
 //go:generate mockgen -destination=mocks/mock_$GOFILE -package=mocks . Repository
 type Repository interface {
-	Create(ctx context.Context, note CreateNote) (int64, error)
 	CreateByUserID(ctx context.Context, userID uuid.UUID, note CreateNote) (int64, error)
 	GetAll(ctx context.Context) ([]models.Note, error)
 	GetAllFromUserByID(ctx context.Context, userID uuid.UUID) ([]*models.Note, error)

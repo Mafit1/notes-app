@@ -44,7 +44,7 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		Content: in.Content,
 	}
 
-	id, err := h.noteService.CreateByUserID(c.Request().Context(), userID, note)
+	id, err := h.noteService.Create(c.Request().Context(), userID, note)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
