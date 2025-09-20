@@ -34,8 +34,8 @@ func (app *App) AuthService() auth.Service {
 }
 
 func (app *App) JwtService() jwtservice.Service {
-	if app.jwtservice == nil {
-		app.jwtservice = jwtservice.New(
+	if app.jwtService == nil {
+		app.jwtService = jwtservice.New(
 			app.cfg.Auth.JWTAccessSecretKey,
 			app.cfg.Auth.AccessTokenTTL,
 			app.cfg.Auth.JWTRefreshSecretKey,
@@ -45,5 +45,5 @@ func (app *App) JwtService() jwtservice.Service {
 			app.Hasher(),
 		)
 	}
-	return app.jwtservice
+	return app.jwtService
 }

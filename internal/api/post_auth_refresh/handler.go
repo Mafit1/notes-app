@@ -26,12 +26,12 @@ type Response struct {
 }
 
 func (h *handler) Handle(c echo.Context, _ Request) error {
-	refreshCookie, err := c.Cookie("refreshToken")
+	refreshToken, err := refresh.ExtractRefreshTokenFromCookie(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "missing refresh token")
+		return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 	}
 
-	tokens, err := h.authService.RefreshTokens(c.Request().Context(), refreshCookie.Value)
+	tokens, err := h.authService.RefreshTokens(c.Request().Context(), refreshToken)
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidRefreshToken) {
 			return echo.NewHTTPError(http.StatusUnauthorized, "invalid refresh token")
@@ -43,7 +43,7 @@ func (h *handler) Handle(c echo.Context, _ Request) error {
 		Name:     refresh.RefreshTokenCookie,
 		Value:    tokens.RefreshToken,
 		Expires:  tokens.RefreshExpiresAt,
-		Path:     "/api/auth",
+		Path:     "/",
 		HttpOnly: true,
 	})
 

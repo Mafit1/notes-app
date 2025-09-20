@@ -26,7 +26,7 @@ type Request struct {
 	Password string `json:"password" validate:"required,min=8,max=72"`
 }
 
-type Responce struct {
+type Response struct {
 	UserID      uuid.UUID `json:"id" validate:"required"`
 	AccessToken string    `json:"accessToken" validate:"required"`
 }
@@ -56,7 +56,7 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		HttpOnly: true,
 	})
 
-	return c.JSON(http.StatusAccepted, Responce{
+	return c.JSON(http.StatusAccepted, Response{
 		UserID:      authData.UserData.ID,
 		AccessToken: authData.AccessToken,
 	})

@@ -28,7 +28,7 @@ type Note struct {
 
 type Request struct{}
 
-type Responce struct {
+type Response struct {
 	Notes []Note `json:"notes"`
 }
 
@@ -43,7 +43,7 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	responceNotes := lo.Map(notes, func(n *models.Note, _ int) Note {
+	responseNotes := lo.Map(notes, func(n *models.Note, _ int) Note {
 		return Note{
 			ID:      n.ID,
 			Title:   n.Title,
@@ -51,5 +51,5 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		}
 	})
 
-	return c.JSON(http.StatusOK, Responce{responceNotes})
+	return c.JSON(http.StatusOK, Response{responseNotes})
 }

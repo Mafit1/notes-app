@@ -32,7 +32,7 @@ type Request struct {
 	Content string `json:"content" validate:"required"`
 }
 
-type Responce struct {
+type Response struct {
 	ID      int64  `json:"id"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
@@ -60,11 +60,11 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	noteResponce := Responce{
+	noteResponse := Response{
 		ID:      updatedNote.ID,
 		Title:   updatedNote.Title,
 		Content: updatedNote.Content,
 	}
 
-	return c.JSON(http.StatusOK, noteResponce)
+	return c.JSON(http.StatusOK, noteResponse)
 }

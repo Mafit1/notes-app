@@ -57,7 +57,7 @@ type App struct {
 	notesService notesService.Service
 	usersService usersService.Service
 	authService  authService.Service
-	jwtservice   jwtservice.Service
+	jwtService   jwtservice.Service
 
 	// infra
 	hasher hasher.Hasher

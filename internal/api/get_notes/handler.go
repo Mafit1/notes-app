@@ -27,7 +27,7 @@ type Note struct {
 
 type Request struct{}
 
-type Responce struct {
+type Response struct {
 	Notes []Note `json:"notes"`
 }
 
@@ -45,5 +45,5 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 		}
 	})
 
-	return c.JSON(http.StatusOK, Responce{notes})
+	return c.JSON(http.StatusOK, Response{notes})
 }
