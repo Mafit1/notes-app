@@ -14,18 +14,18 @@ import (
 )
 
 type service struct {
-	authRepo     auth.Repository
-	usersService users_service.Service
-	jwtService   jwt_service.Service
-	hasher       hasher.Hasher
+	authRepo       auth.Repository
+	usersService   users_service.Service
+	jwtService     jwt_service.Service
+	passwordHasher hasher.Hasher
 }
 
-func New(authRepo auth.Repository, usersService users_service.Service, jwtService jwt_service.Service, hasher hasher.Hasher) Service {
+func New(authRepo auth.Repository, usersService users_service.Service, jwtService jwt_service.Service, passwordHasher hasher.Hasher) Service {
 	return &service{
-		authRepo:     authRepo,
-		usersService: usersService,
-		jwtService:   jwtService,
-		hasher:       hasher,
+		authRepo:       authRepo,
+		usersService:   usersService,
+		jwtService:     jwtService,
+		passwordHasher: passwordHasher,
 	}
 }
 
@@ -38,7 +38,7 @@ func (s *service) Register(ctx context.Context, in RegisterIn) (out *AuthData, e
 		return nil, ErrUserAlreadyExists
 	}
 
-	hashedPassword, err := s.hasher.Hash(in.Password)
+	hashedPassword, err := s.passwordHasher.Hash(in.Password)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrPasswordHashingFailed, err)
 	}
@@ -89,7 +89,7 @@ func (s *service) Login(ctx context.Context, in LoginIn) (out *AuthData, err err
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	if !s.hasher.Match(in.Password, user.Password) {
+	if !s.passwordHasher.Match(in.Password, user.Password) {
 		return nil, ErrInvalidCredentials
 	}
 
