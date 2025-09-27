@@ -13,7 +13,7 @@ type AuthMW struct {
 	jwtService jwtservice.Service
 }
 
-func New(jwtService jwtservice.Service) *AuthMW {
+func NewAuthMW(jwtService jwtservice.Service) *AuthMW {
 	return &AuthMW{jwtService}
 }
 

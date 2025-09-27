@@ -5,20 +5,24 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/Mafit1/notes-app/internal/metrics"
 	"github.com/Mafit1/notes-app/internal/models"
 	notes_repo "github.com/Mafit1/notes-app/internal/repository/notes"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 type service struct {
 	notesRepository notes_repo.Repository
+	metrics         metrics.NotesMetrics
 }
 
-func New(repo notes_repo.Repository) Service {
-	return &service{repo}
+func New(repo notes_repo.Repository, metrics metrics.NotesMetrics) Service {
+	return &service{repo, metrics}
 }
 
 func (s *service) Create(ctx context.Context, userID uuid.UUID, note CreateNote) (id int64, err error) {
+	logrus.Infof("Service: Creating note for user with ID: %s", userID)
 	id, err = s.notesRepository.CreateByUserID(
 		ctx,
 		userID,
@@ -28,8 +32,11 @@ func (s *service) Create(ctx context.Context, userID uuid.UUID, note CreateNote)
 		},
 	)
 	if err != nil {
+		s.metrics.IncCreatedError()
 		return 0, ErrCannotCreateNote
 	}
+	logrus.Infof("Service: Note created, ID: %d", id)
+	s.metrics.IncCreated()
 	return id, nil
 }
 

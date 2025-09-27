@@ -20,7 +20,10 @@ func (app *App) EchoHandler() *echo.Echo {
 }
 
 func (app *App) configureRouter(handler *echo.Echo) {
-	// Auth routes
+	// Metrics
+	handler.Use(app.MetricsMW().MetricsMiddleware)
+
+	// Auth
 	handler.POST("/register", app.PostAuthRegisterHandler().Handle)
 	handler.POST("/login", app.PostAuthLoginHandler().Handle)
 	handler.POST("/logout", app.PostAuthLogoutHandler().Handle)

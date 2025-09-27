@@ -9,7 +9,7 @@ import (
 
 func (app *App) NotesService() notes.Service {
 	if app.notesService == nil {
-		app.notesService = notes.New(app.NotesRepo())
+		app.notesService = notes.New(app.NotesRepo(), app.NotesMetrics())
 	}
 	return app.notesService
 }

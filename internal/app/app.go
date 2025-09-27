@@ -8,6 +8,7 @@ import (
 	"github.com/Mafit1/notes-app/internal/api"
 	"github.com/Mafit1/notes-app/internal/api/common/middleware"
 	"github.com/Mafit1/notes-app/internal/database"
+	"github.com/Mafit1/notes-app/internal/metrics"
 	authRepo "github.com/Mafit1/notes-app/internal/repository/auth"
 	notesRepo "github.com/Mafit1/notes-app/internal/repository/notes"
 	usersRepo "github.com/Mafit1/notes-app/internal/repository/users"
@@ -63,13 +64,17 @@ type App struct {
 	hasher hasher.Hasher
 
 	// middlewares
-	authMW *middleware.AuthMW
+	authMW    *middleware.AuthMW
+	metricsMW *middleware.MetricsMW
+
+	// metrics
+	notesMetrics metrics.NotesMetrics
 }
 
 func New(configPath string) *App {
 	cfg, err := config.New(configPath)
 	if err != nil {
-		log.Fatalf("app - New - config.New: %v", err)
+		log.Fatalf("app - NewAuthMW - config.NewAuthMW: %v", err)
 	}
 
 	initLogger(cfg.Log.Level)
@@ -92,6 +97,21 @@ func (app *App) Start() {
 	if err != nil {
 		log.Fatalf("app - Start - Migrations failed: %v", err)
 	}
+
+	metricsHandler := echo.New()
+	metrics.ConfigureHandler(metricsHandler)
+	metricsHandler.GET("/health", func(c echo.Context) error {
+		return c.String(200, "OK")
+	})
+	metricsServer := httpserver.New(metricsHandler, httpserver.Port(app.cfg.Prometheus.Port))
+	metricsServer.Start()
+	log.Debugf("Metrics server port: %s", app.cfg.Prometheus.Port)
+
+	defer func() {
+		if err := metricsServer.Shutdown(); err != nil {
+			log.Errorf("Metrics server shutdown error: %v", err)
+		}
+	}()
 
 	httpServer := httpserver.New(app.EchoHandler(), httpserver.Port(app.cfg.HTTP.Port))
 	httpServer.Start()

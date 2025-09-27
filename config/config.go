@@ -9,11 +9,12 @@ import (
 
 type (
 	Config struct {
-		App      App      `yaml:"app"`
-		HTTP     HTTP     `yaml:"http"`
-		Postgres Postgres `yaml:"postgres"`
-		Log      Log      `yaml:"logger"`
-		Auth     Auth     `yaml:"auth"`
+		App        App        `yaml:"app"`
+		HTTP       HTTP       `yaml:"http"`
+		Postgres   Postgres   `yaml:"postgres"`
+		Log        Log        `yaml:"logger"`
+		Auth       Auth       `yaml:"auth"`
+		Prometheus Prometheus `yaml:"prometheus"`
 	}
 
 	App struct {
@@ -39,6 +40,10 @@ type (
 		JWTRefreshSecretKey string        `env-required:"true" yaml:"jwt_refresh_secret_key" env:"JWT_REFRESH_SECRET_KEY"`
 		AccessTokenTTL      time.Duration `env-required:"true" yaml:"access_token_ttl" env:"JWT_ACCESS_TTL"`
 		RefreshTokenTTL     time.Duration `env-required:"true" yaml:"refresh_token_ttl" env:"JWT_REFRESH_TTL"`
+	}
+
+	Prometheus struct {
+		Port string `env-required:"true" yaml:"port" env:"PROMETHEUS_PORT"`
 	}
 )
 
