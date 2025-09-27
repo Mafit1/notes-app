@@ -1,6 +1,6 @@
 # Notes API Server
 
-Notes API server on Go for taking notes with PostgreSQL database.
+Notes API server on Go for taking notes with PostgreSQL database and JWT authentication.
 
 ## Getting started
 
@@ -19,6 +19,9 @@ Notes API server on Go for taking notes with PostgreSQL database.
    ```
    docker-compose up --build
    ```
+
+### Metrics
+You can get server metrics by open grafana on http://localhost:3000 and prometheus on http://localhost:9090
 
 ### API Endpoints
 
