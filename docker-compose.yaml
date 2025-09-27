@@ -49,6 +49,18 @@ services:
     depends_on:
       - app
 
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-provisioning:/etc/grafana/provisioning
+    networks:
+      - app-network
+    depends_on:
+      - prometheus
+
 networks:
   app-network:
     driver: bridge
@@ -56,3 +68,4 @@ networks:
 volumes:
   postgres_data:
   prometheus_data:
+  grafana_data:
