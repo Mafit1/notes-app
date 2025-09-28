@@ -21,7 +21,7 @@ Notes API server on Go for taking notes with PostgreSQL database and JWT authent
    ```
 
 ### Metrics
-You can get server metrics by open grafana on http://localhost:3000 and prometheus on http://localhost:9090
+You can get server metrics by opening Grafana at http://localhost:3000 and Prometheus at http://localhost:9090
 
 ### API Endpoints
 
