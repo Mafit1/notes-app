@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/Mafit1/notes-app/internal/metrics/mocks"
 	notes_repo "github.com/Mafit1/notes-app/internal/repository/notes"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ func TestCreate(t *testing.T) {
 	userID := uuid.New()
 	note := notes_service.CreateNote{Title: "title", Content: "content"}
 
-	type MockBehavior func(r *notes_repo_mocks.MockRepository)
+	type MockBehavior func(r *notes_repo_mocks.MockRepository, m *mocks.MockNotesMetrics)
 
 	tests := []struct {
 		name    string
@@ -30,20 +31,26 @@ func TestCreate(t *testing.T) {
 	}{
 		{
 			name: "success",
-			mock: func(r *notes_repo_mocks.MockRepository) {
+			mock: func(r *notes_repo_mocks.MockRepository, m *mocks.MockNotesMetrics) {
 				r.EXPECT().
 					CreateByUserID(ctx, userID, notes_repo.CreateNote{Title: note.Title, Content: note.Content}).
 					Return(int64(1), nil)
+				m.EXPECT().
+					IncCreated().
+					Times(1)
 			},
 			wantID:  1,
 			wantErr: nil,
 		},
 		{
 			name: "cannot create note",
-			mock: func(r *notes_repo_mocks.MockRepository) {
+			mock: func(r *notes_repo_mocks.MockRepository, m *mocks.MockNotesMetrics) {
 				r.EXPECT().
 					CreateByUserID(ctx, userID, notes_repo.CreateNote{Title: note.Title, Content: note.Content}).
 					Return(int64(0), errors.New("db error"))
+				m.EXPECT().
+					IncCreatedError().
+					Times(1)
 			},
 			wantID:  0,
 			wantErr: notes_service.ErrCannotCreateNote,
@@ -56,9 +63,10 @@ func TestCreate(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
-			tc.mock(mockRepo)
+			mockMetrics := mocks.NewMockNotesMetrics(ctrl)
+			tc.mock(mockRepo, mockMetrics)
 
-			s := notes_service.New(mockRepo)
+			s := notes_service.New(mockRepo, mockMetrics)
 			id, err := s.Create(ctx, userID, note)
 
 			assert.Equal(t, tc.wantID, id)
@@ -119,9 +127,10 @@ func TestGetAll(t *testing.T) {
 			ctrl := gomock.NewController(t)
 
 			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+			mockMetrics := mocks.NewMockNotesMetrics(ctrl)
 			tc.mockBehavior(mockRepo)
 
-			s := notes_service.New(mockRepo)
+			s := notes_service.New(mockRepo, mockMetrics)
 
 			got, err := s.GetAll(ctx)
 
@@ -186,9 +195,10 @@ func TestGetByID(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+			mockMetrics := mocks.NewMockNotesMetrics(ctrl)
 			tc.mock(mockRepo)
 
-			s := notes_service.New(mockRepo)
+			s := notes_service.New(mockRepo, mockMetrics)
 			got, err := s.GetByID(ctx, userID, 1)
 
 			assert.Equal(t, tc.want, got)
@@ -237,9 +247,10 @@ func TestGetAllByUserID(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+			mockMetrics := mocks.NewMockNotesMetrics(ctrl)
 			tc.mock(mockRepo)
 
-			s := notes_service.New(mockRepo)
+			s := notes_service.New(mockRepo, mockMetrics)
 			got, err := s.GetAllByUserID(ctx, userID)
 
 			assert.Equal(t, tc.want, got)
@@ -299,9 +310,10 @@ func TestDelete(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+			mockMetrics := mocks.NewMockNotesMetrics(ctrl)
 			tc.mock(mockRepo)
 
-			s := notes_service.New(mockRepo)
+			s := notes_service.New(mockRepo, mockMetrics)
 			err := s.Delete(ctx, userID, 1)
 
 			assert.ErrorIs(t, err, tc.wantErr)
@@ -365,9 +377,10 @@ func TestUpdate(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := notes_repo_mocks.NewMockRepository(ctrl)
+			mockMetrics := mocks.NewMockNotesMetrics(ctrl)
 			tc.mock(mockRepo)
 
-			s := notes_service.New(mockRepo)
+			s := notes_service.New(mockRepo, mockMetrics)
 			got, err := s.Update(ctx, userID, note)
 
 			assert.Equal(t, tc.want, got)
