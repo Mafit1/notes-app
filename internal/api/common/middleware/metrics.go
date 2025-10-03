@@ -40,14 +40,17 @@ func (m *MetricsMW) MetricsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		method := c.Request().Method
 		path := c.Path()
 
-		err := next(c)
+		defer func() {
+			status := c.Response().Status
+			duration := time.Since(start).Seconds()
+			httpRequestsTotal.WithLabelValues(method, path, strconv.Itoa(status)).Inc()
+			httpRequestDuration.WithLabelValues(method, path, strconv.Itoa(status)).Observe(duration)
+		}()
 
-		duration := time.Since(start).Seconds()
-		status := strconv.Itoa(c.Response().Status)
+		if err := next(c); err != nil {
+			c.Error(err)
+		}
 
-		httpRequestsTotal.WithLabelValues(method, path, status).Inc()
-		httpRequestDuration.WithLabelValues(method, path, status).Observe(duration)
-
-		return err
+		return nil
 	}
 }

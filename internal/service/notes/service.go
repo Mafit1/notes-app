@@ -139,6 +139,7 @@ func (s *service) Update(ctx context.Context, userID uuid.UUID, note models.Note
 	logger := logrus.WithContext(ctx).WithFields(logrus.Fields{
 		"component": "note_service",
 		"user_id":   userID,
+		"note_id":   note.ID,
 		"op":        "Update",
 	})
 
@@ -164,6 +165,6 @@ func (s *service) Update(ctx context.Context, userID uuid.UUID, note models.Note
 		return nil, ErrCannotUpdateNote
 	}
 
-	logger.WithField("note_id", updatedNote.ID).Info("note updated")
+	logger.Info("note updated")
 	return &updatedNote, nil
 }

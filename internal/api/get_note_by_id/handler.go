@@ -43,6 +43,8 @@ func (h *handler) Handle(c echo.Context, in Request) error {
 	if err != nil {
 		if errors.Is(err, notes.ErrNoteNotFound) {
 			return echo.NewHTTPError(http.StatusNotFound, err.Error())
+		} else if errors.Is(err, notes.ErrForbidden) {
+			return echo.NewHTTPError(http.StatusForbidden, err.Error())
 		}
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
